@@ -77,34 +77,33 @@ public class ClassFile implements WritableEntry {
      * Adds a field with the given name and descriptor.
      *
      */
-    public ClassField addField(String name, String descriptor, int accessFlags) {
-        return addField(name, descriptor, accessFlags, null);
+    public ClassField addField(int accessFlags, String name, String descriptor) {
+        return addField(accessFlags, name, descriptor, null);
     }
 
-    public ClassField addField(String name, String descriptor, int accessFlags, String signature) {
+    public ClassField addField(int accessFlags,String name, String descriptor,  String signature) {
         ClassField field = new ClassField((short) accessFlags, name, descriptor, signature, this, constPool);
         fields.add(field);
         return field;
     }
 
-    public ClassField addField(String name, Class<?> type, int accessFlags) {
-        return addField(name, DescriptorUtils.classToStringRepresentation(type), accessFlags);
+    public ClassField addField(int accessFlags,String name, Class<?> type) {
+        return addField(accessFlags,name, DescriptorUtils.classToStringRepresentation(type));
     }
 
-    public ClassField addField(String name, Class<?> type, Type genericType, int accessFlags) {
-        return addField(name, DescriptorUtils.classToStringRepresentation(type), accessFlags, SignatureBuilder
+    public ClassField addField( int accessFlags, String name, Class<?> type, Type genericType) {
+        return addField(accessFlags, name, DescriptorUtils.classToStringRepresentation(type),  SignatureBuilder
                 .fieldAttribute(genericType));
     }
 
     public ClassField addField(Field field) {
-        // TODO: signiture
-        return addField(field.getName(), DescriptorUtils.classToStringRepresentation(field.getType()), (short) field
-                .getModifiers());
+        return addField( (short) field
+                .getModifiers(),field.getName(), field.getType(), field.getGenericType());
     }
 
     // methods
 
-    public ClassMethod addMethod(String name, String returnType, String[] parameters, int accessFlags) {
+    public ClassMethod addMethod(int accessFlags, String name, String returnType, String... parameters) {
         ClassMethod method = new ClassMethod(name, returnType, parameters, accessFlags, constPool);
         methods.add(method);
         return method;

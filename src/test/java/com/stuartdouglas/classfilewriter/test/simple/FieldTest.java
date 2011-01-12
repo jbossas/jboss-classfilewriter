@@ -22,6 +22,7 @@
 package com.stuartdouglas.classfilewriter.test.simple;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 
@@ -41,10 +42,10 @@ public class FieldTest {
         Field mapField = getClass().getDeclaredField("mapField");
 
         ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
-        test.addField("field1", "I", AccessFlag.PUBLIC);
-        test.addField("field2", "Ljava/lang/Object;", AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC));
-        test.addField("field3", AA.class, AccessFlag.PUBLIC);
-        test.addField("field4", mapField.getType(), mapField.getGenericType(), AccessFlag.PUBLIC);
+        test.addField(AccessFlag.PUBLIC, "field1", "I");
+        test.addField(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "field2", "Ljava/lang/Object;");
+        test.addField(AccessFlag.PUBLIC, "field3", AA.class);
+        test.addField(AccessFlag.PUBLIC, "field4", mapField.getType(), mapField.getGenericType());
 
         Class<?> clazz = test.define(getClass().getClassLoader());
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
@@ -58,6 +59,7 @@ public class FieldTest {
         Assert.assertEquals(Object.class, field2.getType());
         Assert.assertEquals(Object.class, field2.getGenericType());
         Assert.assertEquals("field2", field2.getName());
+        Assert.assertTrue(Modifier.isStatic(field2.getModifiers()));
 
         Field field3 = clazz.getDeclaredField("field3");
         Assert.assertEquals(AA.class, field3.getType());
