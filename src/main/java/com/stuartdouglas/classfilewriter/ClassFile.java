@@ -48,18 +48,28 @@ public class ClassFile implements WritableEntry {
 
     private final String superclass;
 
-    private int modifiers;
+    private final int accessFlags;
 
     private int version = JavaVersions.JAVA_5;
 
     private final ConstPool constPool = new ConstPool();
 
-    private final List<ClassField> fields = new ArrayList<ClassField>();
+    private final List<String> interfaces = new ArrayList<String>();
 
-    public ClassFile(String name, String superclass) {
+    private final List<ClassField> fields = new ArrayList<ClassField>();
+    private final List<ClassMethod> methods = new ArrayList<ClassMethod>();
+
+    public ClassFile(String name, String superclass, String... interfaces) {
         this.name = name;
         this.superclass = superclass;
-        this.modifiers = AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC);
+        this.accessFlags = AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC);
+        for (String i : interfaces) {
+            this.interfaces.add(i);
+        }
+    }
+
+    public void addInterface(String iface) {
+        this.interfaces.add(iface);
     }
 
     // fields
@@ -71,7 +81,6 @@ public class ClassFile implements WritableEntry {
         return addField(name, descriptor, accessFlags, null);
     }
 
-    // TODO: signature attribute
     public ClassField addField(String name, String descriptor, int accessFlags, String signature) {
         ClassField field = new ClassField((short) accessFlags, name, descriptor, signature, this, constPool);
         fields.add(field);
@@ -93,23 +102,42 @@ public class ClassFile implements WritableEntry {
                 .getModifiers());
     }
 
+    // methods
+
+    public ClassMethod addMethod(String name, String returnType, String[] parameters, int accessFlags) {
+        ClassMethod method = new ClassMethod(name, returnType, parameters, accessFlags, constPool);
+        methods.add(method);
+        return method;
+    }
+
     public void write(DataOutputStream stream) throws IOException {
         // first make sure everything we need is in the const pool
         short nameIndex = constPool.addClassEntry(name);
         short superClassIndex = constPool.addClassEntry(superclass);
 
+        List<Short> interfaceIndexes = new ArrayList<Short>(interfaces.size());
+        for (String i : interfaces) {
+            interfaceIndexes.add(constPool.addClassEntry(i));
+        }
+
         stream.writeInt(0xCAFEBABE);// magic
         stream.writeInt(version);
         constPool.write(stream);
-        stream.writeShort(modifiers);
+        stream.writeShort(accessFlags);
         stream.writeShort(nameIndex);
         stream.writeShort(superClassIndex);
-        stream.writeShort(0); // interface count
+        stream.writeShort(interfaceIndexes.size()); // interface count
+        for (short i : interfaceIndexes) {
+            stream.writeShort(i);
+        }
         stream.writeShort(fields.size()); // field count
         for (ClassField field : fields) {
             field.write(stream);
         }
-        stream.writeShort(0); // method count
+        stream.writeShort(methods.size()); // method count
+        for (ClassMethod method : methods) {
+            method.write(stream);
+        }
         stream.writeShort(0); // attribute count
     }
 

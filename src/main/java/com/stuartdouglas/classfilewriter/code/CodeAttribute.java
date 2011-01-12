@@ -19,31 +19,26 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.stuartdouglas.classfilewriter.test.simple;
+package com.stuartdouglas.classfilewriter.code;
 
-import java.io.Serializable;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
-import junit.framework.Assert;
+import com.stuartdouglas.classfilewriter.attributes.Attribute;
+import com.stuartdouglas.classfilewriter.constpool.ConstPool;
 
-import org.junit.Test;
+public class CodeAttribute extends Attribute {
 
-import com.stuartdouglas.classfilewriter.ClassFile;
-public class SimpleTest {
+    public static final String NAME = "Code";
 
-    @Test
-    public void simpleTest() {
-        ClassFile test = new ClassFile("com/test/AClass", "java/lang/Object");
-        Class<?> clazz = test.define(getClass().getClassLoader());
-        Assert.assertEquals("com.test.AClass", clazz.getName());
+    public CodeAttribute(ConstPool constPool) {
+        super(NAME, constPool);
     }
 
-    @Test
-    public void testAddingInterfaces() {
-        ClassFile test = new ClassFile("com/test/BClass", "java/lang/Object", "java/io/Serializable");
-        Class<?> clazz = test.define(getClass().getClassLoader());
-        Assert.assertEquals("com.test.BClass", clazz.getName());
-        Assert.assertTrue(Serializable.class.isAssignableFrom(clazz));
-        Assert.assertEquals(1, clazz.getInterfaces().length);
+    @Override
+    public void writeData(DataOutputStream stream) throws IOException {
+        // TODO Auto-generated method stub
+
     }
 
 }
