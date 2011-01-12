@@ -22,6 +22,8 @@
 package com.stuartdouglas.classfilewriter.test.simple;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -31,23 +33,51 @@ import com.stuartdouglas.classfilewriter.AccessFlag;
 import com.stuartdouglas.classfilewriter.ClassFile;
 public class FieldTest {
 
+    public Map<String, Integer> mapField;
+
     @Test
     public void testCreatingField() throws SecurityException, NoSuchFieldException {
+
+        Field mapField = getClass().getDeclaredField("mapField");
 
         ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
         test.addField("field1", "I", AccessFlag.PUBLIC);
         test.addField("field2", "Ljava/lang/Object;", AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC));
+        test.addField("field3", AA.class, AccessFlag.PUBLIC);
+        test.addField("field4", mapField.getType(), mapField.getGenericType(), AccessFlag.PUBLIC);
 
         Class<?> clazz = test.define(getClass().getClassLoader());
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
 
         Field field1 = clazz.getDeclaredField("field1");
         Assert.assertEquals(int.class, field1.getType());
+        Assert.assertEquals(int.class, field1.getGenericType());
         Assert.assertEquals("field1", field1.getName());
 
         Field field2 = clazz.getDeclaredField("field2");
         Assert.assertEquals(Object.class, field2.getType());
+        Assert.assertEquals(Object.class, field2.getGenericType());
         Assert.assertEquals("field2", field2.getName());
+
+        Field field3 = clazz.getDeclaredField("field3");
+        Assert.assertEquals(AA.class, field3.getType());
+        Assert.assertEquals(AA.class, field3.getGenericType());
+        Assert.assertEquals("field3", field3.getName());
+
+
+        Field field4 = clazz.getDeclaredField("field4");
+        Assert.assertEquals(Map.class, field4.getType());
+        Assert.assertTrue(field4.getGenericType() instanceof ParameterizedType);
+        ParameterizedType field4type = (ParameterizedType) field4.getGenericType();
+        Assert.assertEquals(Map.class,field4type.getRawType());
+        Assert.assertEquals(String.class, field4type.getActualTypeArguments()[0]);
+        Assert.assertEquals(Integer.class,field4type.getActualTypeArguments()[1]);
+
+        Assert.assertEquals("field4", field4.getName());
+
+    }
+
+    public class AA {
 
     }
 

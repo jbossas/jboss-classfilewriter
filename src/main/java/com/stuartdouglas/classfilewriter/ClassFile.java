@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -32,9 +33,9 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import com.stuartdouglas.classfilewriter.constpool.ConstPool;
 import com.stuartdouglas.classfilewriter.util.DescriptorUtils;
+import com.stuartdouglas.classfilewriter.util.SignatureBuilder;
 
 /**
  *
@@ -64,7 +65,7 @@ public class ClassFile implements WritableEntry {
     // fields
     /**
      * Adds a field with the given name and descriptor.
-     * 
+     *
      */
     public ClassField addField(String name, String descriptor, int accessFlags) {
         return addField(name, descriptor, accessFlags, null);
@@ -72,13 +73,18 @@ public class ClassFile implements WritableEntry {
 
     // TODO: signature attribute
     public ClassField addField(String name, String descriptor, int accessFlags, String signature) {
-        ClassField field = new ClassField((short) accessFlags, name, descriptor, this, constPool);
+        ClassField field = new ClassField((short) accessFlags, name, descriptor, signature, this, constPool);
         fields.add(field);
         return field;
     }
 
     public ClassField addField(String name, Class<?> type, int accessFlags) {
         return addField(name, DescriptorUtils.classToStringRepresentation(type), accessFlags);
+    }
+
+    public ClassField addField(String name, Class<?> type, Type genericType, int accessFlags) {
+        return addField(name, DescriptorUtils.classToStringRepresentation(type), accessFlags, SignatureBuilder
+                .fieldAttribute(genericType));
     }
 
     public ClassField addField(Field field) {

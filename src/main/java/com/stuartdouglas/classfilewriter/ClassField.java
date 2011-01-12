@@ -23,7 +23,11 @@ package com.stuartdouglas.classfilewriter;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.stuartdouglas.classfilewriter.attributes.Attribute;
+import com.stuartdouglas.classfilewriter.attributes.SignatureAttribute;
 import com.stuartdouglas.classfilewriter.constpool.ConstPool;
 
 public class ClassField implements WritableEntry {
@@ -33,23 +37,31 @@ public class ClassField implements WritableEntry {
     private final short nameIndex;
     private final String descriptor;
     private final short descriptorIndex;
+    private final List<Attribute> attributes = new ArrayList<Attribute>();
 
     private final ClassFile classFile;
 
-    public ClassField(short accessFlags, String name, String descriptor, ClassFile classFile, ConstPool constPool) {
+    public ClassField(short accessFlags, String name, String descriptor, String signature, ClassFile classFile,
+            ConstPool constPool) {
         this.accessFlags = accessFlags;
         this.name = name;
         this.descriptor = descriptor;
         this.classFile = classFile;
         this.nameIndex = constPool.addUtf8Entry(name);
         this.descriptorIndex = constPool.addUtf8Entry(descriptor);
+        if(signature != null){
+            attributes.add(new SignatureAttribute(constPool, signature));
+        }
     }
 
     public void write(DataOutputStream stream) throws IOException {
         stream.writeShort(accessFlags);
         stream.writeShort(nameIndex);
         stream.writeShort(descriptorIndex);
-        stream.writeShort(0);// no attributes
+        stream.writeShort(attributes.size());
+        for (Attribute attribute : attributes) {
+            attribute.write(stream);
+        }
     }
 
     public short getAccessFlags() {
@@ -66,5 +78,9 @@ public class ClassField implements WritableEntry {
 
     public String getDescriptor() {
         return descriptor;
+    }
+
+    public ClassFile getClassFile() {
+        return classFile;
     }
 }
