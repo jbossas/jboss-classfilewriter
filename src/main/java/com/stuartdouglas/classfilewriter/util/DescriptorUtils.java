@@ -194,4 +194,39 @@ public class DescriptorUtils {
         desc.append(returnType);
         return desc.toString();
     }
+
+    /**
+     * performs basic validation on a descriptor
+     */
+    public static String validateDescriptor(String descriptor) {
+        if (descriptor.length() == 0) {
+            throw new RuntimeException("descriptors may not be empty");
+        }
+        if (descriptor.length() > 1) {
+            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
+                if (!descriptor.endsWith(";")) {
+                    throw new RuntimeException(descriptor + " is not a valid descriptor");
+                }
+            } else {
+                throw new RuntimeException(descriptor + " is not a valid descriptor");
+            }
+        } else {
+            char type = descriptor.charAt(0);
+            switch (type) {
+                case 'I':
+                case 'Z':
+                case 'S':
+                case 'B':
+                case 'F':
+                case 'D':
+                case 'V':
+                case 'J':
+                case 'C':
+                    break;
+                default:
+                    throw new RuntimeException(descriptor + " is not a valid descriptor");
+            }
+        }
+        return descriptor;
+    }
 }

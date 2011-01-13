@@ -37,6 +37,7 @@ public class MethodTest {
 
         ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
         test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method1", "Ljava/lang/Object;", "I", "J");
+        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC), "method2", "V").getCodeAttribute().addReturnInstruction();
 
         Class<?> clazz = test.define(getClass().getClassLoader());
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
@@ -48,6 +49,8 @@ public class MethodTest {
         Assert.assertEquals(int.class, method1.getParameterTypes()[0]);
         Assert.assertEquals(long.class, method1.getParameterTypes()[1]);
         Assert.assertEquals("method1", method1.getName());
+
+        Method method2 = clazz.getDeclaredMethod("method2");
 
     }
 

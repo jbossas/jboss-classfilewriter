@@ -48,7 +48,7 @@ public class ClassMethod implements WritableEntry {
     private final CodeAttribute codeAttribute;
 
     ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ConstPool constPool) {
-        this.returnType = returnType;
+        this.returnType = DescriptorUtils.validateDescriptor(returnType);
         this.parameters = parameters;
         this.name = name;
         this.descriptor = DescriptorUtils.getMethodDescriptor(parameters, returnType);
@@ -59,10 +59,12 @@ public class ClassMethod implements WritableEntry {
         if (Modifier.isAbstract(accessFlags)) {
             codeAttribute = null;
         } else {
-            codeAttribute = new CodeAttribute(constPool);
+            codeAttribute = new CodeAttribute(this, constPool);
             attributes.add(codeAttribute);
         }
-
+        for (String param : this.parameters) {
+            DescriptorUtils.validateDescriptor(param);
+        }
     }
 
     public void write(DataOutputStream stream) throws IOException {
@@ -73,6 +75,10 @@ public class ClassMethod implements WritableEntry {
         for (Attribute attribute : attributes) {
             attribute.write(stream);
         }
+    }
+
+    public CodeAttribute getCodeAttribute() {
+        return codeAttribute;
     }
 
     public int getAccessFlags() {
