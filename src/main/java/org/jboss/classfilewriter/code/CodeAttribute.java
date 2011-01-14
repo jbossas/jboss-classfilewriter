@@ -167,10 +167,24 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.push(entry));
     }
 
-    public void astore(int no) {
-        if (getStack().size() == 0) {
-            throw new InvalidBytecodeException("cannot astore when stack is empty");
+    public void anewarray(String arrayType) {
+        assertNotEmptyStack("cannot anewarray when stack is empty");
+        if (getStack().top().getType() != StackEntryType.INT) {
+            throw new InvalidBytecodeException("anewarray requires an int on top of the operand stack");
         }
+        int index = constPool.addClassEntry(arrayType);
+        writeByte(Opcode.ANEWARRAY);
+        writeShort(index);
+        currentOffset += 3;
+        if (arrayType.startsWith("[")) {
+            advanceFrame(currentFrame.replace("[" + arrayType));
+        } else {
+            advanceFrame(currentFrame.replace("[L" + arrayType + ";"));
+        }
+    }
+
+    public void astore(int no) {
+        assertNotEmptyStack("cannot astore when stack is empty");
         StackEntry top = getStack().top();
         if (top.getType() != StackEntryType.OBJECT && top.getType() != StackEntryType.NULL) {
             throw new InvalidBytecodeException("astore requires reference on top of stack: " + getStack().toString());
@@ -492,6 +506,12 @@ public class CodeAttribute extends Attribute {
 
     private StackState getStack() {
         return currentFrame.getStackState();
+    }
+
+    private void assertNotEmptyStack(String message) {
+        if (getStack().size() == 0) {
+            throw new InvalidBytecodeException(message);
+        }
     }
 
 }
