@@ -91,7 +91,7 @@ public class ConstPool implements WritableEntry {
         final short utf8Location = addUtf8Entry(string);
         final short index = count++;
         constPoolSize++;
-        entries.put(index, new ClassEntry(utf8Location));
+        entries.put(index, new StringEntry(utf8Location));
         stringLocations.put(string, index);
         return index;
     }

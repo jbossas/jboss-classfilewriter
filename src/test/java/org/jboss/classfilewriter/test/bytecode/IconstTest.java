@@ -21,6 +21,29 @@
  */
 package org.jboss.classfilewriter.test.bytecode;
 
-public class BytecodeTest {
+import junit.framework.Assert;
+
+import org.jboss.classfilewriter.code.CodeAttribute;
+import org.junit.Test;
+
+public class IconstTest {
+
+    @Test
+    public void testIconst() {
+        MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
+        CodeAttribute ca = mt.getCodeAttribute();
+        ca.iconst(2);
+        ca.returnInstruction();
+        Assert.assertEquals(2, (int) mt.invoke());
+    }
+
+    @Test
+    public void testIconstToLdc() {
+        MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
+        CodeAttribute ca = mt.getCodeAttribute();
+        ca.iconst(200);
+        ca.returnInstruction();
+        Assert.assertEquals(200, (int) mt.invoke());
+    }
 
 }

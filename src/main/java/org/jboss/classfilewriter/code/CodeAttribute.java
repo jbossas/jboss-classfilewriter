@@ -224,6 +224,32 @@ public class CodeAttribute extends Attribute {
         }
     }
 
+    /**
+     * Adds an ldc2_w instruction for double
+     * 
+     * @param value
+     */
+    public void ldc2(double value) {
+        int index = constPool.addDoubleEntry(value);
+        writeByte(Opcode.LDC2_W);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.push("D"));
+    }
+
+    /**
+     * Adds an ldc2_w instruction for long
+     * 
+     * @param value
+     */
+    public void ldc2(long value) {
+        int index = constPool.addLongEntry(value);
+        writeByte(Opcode.LDC2_W);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.push("J"));
+    }
+
     public void loadType(String descriptor) {
         if (descriptor.length() != 1) {
             if (descriptor.startsWith("L") && descriptor.endsWith(";")) {

@@ -26,24 +26,15 @@ import junit.framework.Assert;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class FConst {
+public class LdcTest {
 
     @Test
-    public void testFconst() {
-        MethodTester<Float> mt = new MethodTester<Float>(float.class);
+    public void testLdcString() {
+        MethodTester<String> mt = new MethodTester<String>(String.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.fconst(2);
+        ca.ldc("Hello world");
         ca.returnInstruction();
-        Assert.assertEquals(2.0f, (float) mt.invoke());
-    }
-
-    @Test
-    public void testFconstToLdc() {
-        MethodTester<Float> mt = new MethodTester<Float>(float.class);
-        CodeAttribute ca = mt.getCodeAttribute();
-        ca.fconst(200.0f);
-        ca.returnInstruction();
-        Assert.assertEquals(200f, (float) mt.invoke());
+        Assert.assertEquals("Hello world", mt.invoke());
     }
 
 }

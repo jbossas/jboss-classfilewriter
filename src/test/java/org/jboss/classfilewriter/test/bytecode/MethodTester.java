@@ -61,6 +61,9 @@ public class MethodTester<T> {
     }
 
     public T invoke(Object... params) {
+        if (!created) {
+            create();
+        }
         try {
             return (T) createdMethod.invoke(null, params);
         } catch (IllegalArgumentException e) {

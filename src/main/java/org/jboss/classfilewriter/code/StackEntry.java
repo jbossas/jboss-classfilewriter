@@ -27,7 +27,6 @@ import java.io.IOException;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
-
 /**
  * represents the state of the stack or the local variable array.
  * <p>
@@ -43,7 +42,7 @@ public class StackEntry {
     private final String descriptor;
 
     /**
-     * if this is OBJECT othen this holds the const pool index
+     * if this is OBJECT then this holds the const pool index
      */
     private final int descriptorIndex;
 
