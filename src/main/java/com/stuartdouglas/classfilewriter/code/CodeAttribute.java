@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.util.LinkedHashMap;
 
 import com.stuartdouglas.classfilewriter.ClassMethod;
 import com.stuartdouglas.classfilewriter.attributes.Attribute;
@@ -37,6 +38,8 @@ public class CodeAttribute extends Attribute {
 
     private final ClassMethod method;
 
+    private final ConstPool constPool;
+
     private final ByteArrayOutputStream finalDataBytes;
 
     private final DataOutputStream data;
@@ -45,9 +48,16 @@ public class CodeAttribute extends Attribute {
 
     private int maxStackDepth = 0;
 
+    private final LinkedHashMap<Integer, StackFrame> stackFrames = new LinkedHashMap<Integer, StackFrame>();
+
+    private StackFrame currentFrame;
+
+    private int currentOffset;
+
     public CodeAttribute(ClassMethod method, ConstPool constPool) {
         super(NAME, constPool);
         this.method = method;
+        this.constPool = constPool;
         this.finalDataBytes = new ByteArrayOutputStream();
         this.data = new DataOutputStream(finalDataBytes);
 
@@ -61,12 +71,36 @@ public class CodeAttribute extends Attribute {
                 maxLocals++;
             }
         }
+        // creates a new initial stack frame
+        currentFrame = new StackFrame(method);
+        currentOffset = 0;
+    }
+
+    /**
+     * Adds the appropriate iconst instruction.
+     * <p>
+     * note, if the value is not in the range -1 to 5 ldc is written instead
+     * 
+     * @param value
+     */
+    public void iconst(int value) {
+
+    }
+
+    /**
+     * Adds an ldc instruction for an int.
+     * 
+     * @param value
+     */
+    public void ldc(int value) {
+        int index = constPool.addIntegerEntry(value);
+
     }
 
     /**
      * Adds the appropriate return instruction for the methods return type.
      */
-    public void addReturnInstruction() {
+    public void returnInstruction() {
         if (method.getReturnType().length() > 1) {
             writeByte(Opcode.ARETURN);
         } else {
@@ -96,6 +130,9 @@ public class CodeAttribute extends Attribute {
 
     @Override
     public void writeData(DataOutputStream stream) throws IOException {
+        if (finalDataBytes.size() == 0) {
+            throw new RuntimeException("Code attribute is empty for method " + method.getName() + "  " + method.getDescriptor());
+        }
         stream.writeInt(finalDataBytes.size() + 12); // attribute length
         stream.writeShort(maxStackDepth);
         stream.writeShort(maxLocals);
@@ -111,5 +148,9 @@ public class CodeAttribute extends Attribute {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public LinkedHashMap<Integer, StackFrame> getStackFrames() {
+        return new LinkedHashMap<Integer, StackFrame>(stackFrames);
     }
 }

@@ -37,7 +37,7 @@ public class MethodTest {
 
         ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
         test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method1", "Ljava/lang/Object;", "I", "J");
-        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC), "method2", "V").getCodeAttribute().addReturnInstruction();
+        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC), "method2", "V").getCodeAttribute().returnInstruction();
 
         Class<?> clazz = test.define(getClass().getClassLoader());
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());

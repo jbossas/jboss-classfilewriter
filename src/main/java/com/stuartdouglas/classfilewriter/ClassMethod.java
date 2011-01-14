@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.stuartdouglas.classfilewriter.attributes.Attribute;
+import com.stuartdouglas.classfilewriter.attributes.StackMapAttribute;
 import com.stuartdouglas.classfilewriter.code.CodeAttribute;
 import com.stuartdouglas.classfilewriter.constpool.ConstPool;
 import com.stuartdouglas.classfilewriter.util.DescriptorUtils;
@@ -38,16 +39,28 @@ public class ClassMethod implements WritableEntry {
     private final String[] parameters;
     private final String name;
     private final String descriptor;
-    private int accessFlags;
+    private final int accessFlags;
 
+    private final ClassFile classFile;
+
+    /**
+     * The index of the name into the const pool
+     */
     private final short nameIndex;
+    /**
+     * the index of the descriptor into the const pool
+     */
     private final short descriptorIndex;
 
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 
     private final CodeAttribute codeAttribute;
 
-    ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ConstPool constPool) {
+    private final boolean constructor;
+
+    ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ClassFile classFile) {
+        ConstPool constPool = classFile.getConstPool();
+        this.classFile = classFile;
         this.returnType = DescriptorUtils.validateDescriptor(returnType);
         this.parameters = parameters;
         this.name = name;
@@ -61,10 +74,12 @@ public class ClassMethod implements WritableEntry {
         } else {
             codeAttribute = new CodeAttribute(this, constPool);
             attributes.add(codeAttribute);
+            attributes.add(new StackMapAttribute(this, constPool));
         }
         for (String param : this.parameters) {
             DescriptorUtils.validateDescriptor(param);
         }
+        this.constructor = name.equals("<init>");
     }
 
     public void write(DataOutputStream stream) throws IOException {
@@ -85,10 +100,6 @@ public class ClassMethod implements WritableEntry {
         return accessFlags;
     }
 
-    public void setAccessFlags(int accessFlags) {
-        this.accessFlags = accessFlags;
-    }
-
     public String getReturnType() {
         return returnType;
     }
@@ -103,5 +114,17 @@ public class ClassMethod implements WritableEntry {
 
     public String getDescriptor() {
         return descriptor;
+    }
+
+    public boolean isConstructor() {
+        return constructor;
+    }
+
+    public boolean isStatic() {
+        return Modifier.isStatic(accessFlags);
+    }
+
+    public ClassFile getClassFile() {
+        return classFile;
     }
 }

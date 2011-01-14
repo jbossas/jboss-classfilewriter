@@ -50,7 +50,7 @@ public class ClassFile implements WritableEntry {
 
     private final int accessFlags;
 
-    private int version = JavaVersions.JAVA_5;
+    private int version = JavaVersions.JAVA_6;
 
     private final ConstPool constPool = new ConstPool();
 
@@ -104,7 +104,7 @@ public class ClassFile implements WritableEntry {
     // methods
 
     public ClassMethod addMethod(int accessFlags, String name, String returnType, String... parameters) {
-        ClassMethod method = new ClassMethod(name, returnType, parameters, accessFlags, constPool);
+        ClassMethod method = new ClassMethod(name, returnType, parameters, accessFlags, this);
         methods.add(method);
         return method;
     }
@@ -196,6 +196,19 @@ public class ClassFile implements WritableEntry {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public ConstPool getConstPool() {
+        return constPool;
+    }
+
+    /**
+     * returns the type descriptor for the class
+     * 
+     * @return
+     */
+    public String getDescriptor() {
+        return 'L' + name + ';';
     }
 
 }
