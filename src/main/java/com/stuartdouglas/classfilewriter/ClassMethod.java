@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.stuartdouglas.classfilewriter.attributes.Attribute;
-import com.stuartdouglas.classfilewriter.attributes.StackMapAttribute;
 import com.stuartdouglas.classfilewriter.code.CodeAttribute;
 import com.stuartdouglas.classfilewriter.constpool.ConstPool;
 import com.stuartdouglas.classfilewriter.util.DescriptorUtils;
@@ -74,7 +73,6 @@ public class ClassMethod implements WritableEntry {
         } else {
             codeAttribute = new CodeAttribute(this, constPool);
             attributes.add(codeAttribute);
-            attributes.add(new StackMapAttribute(this, constPool));
         }
         for (String param : this.parameters) {
             DescriptorUtils.validateDescriptor(param);

@@ -21,6 +21,8 @@
  */
 package com.stuartdouglas.classfilewriter.test.simple;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import junit.framework.Assert;
@@ -29,16 +31,25 @@ import org.junit.Test;
 
 import com.stuartdouglas.classfilewriter.AccessFlag;
 import com.stuartdouglas.classfilewriter.ClassFile;
+import com.stuartdouglas.classfilewriter.code.CodeAttribute;
 public class MethodTest {
 
     @Test
-    public void testCreatingMethod() throws SecurityException, NoSuchMethodException {
+    public void testCreatingMethod() throws SecurityException, NoSuchMethodException, IOException {
 
 
         ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
         test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method1", "Ljava/lang/Object;", "I", "J");
-        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC), "method2", "V").getCodeAttribute().returnInstruction();
+        CodeAttribute code = test.addMethod(AccessFlag.of(AccessFlag.PUBLIC), "method2", "V").getCodeAttribute();
+        code.ldc(100);
+        code.iconst(500);
+        code.ldc(1);
+        code.iconst(1);
+        code.returnInstruction();
 
+        FileOutputStream s = new FileOutputStream("/tmp/MyFile1.class");
+        s.write(test.toBytecode());
+        s.close();
         Class<?> clazz = test.define(getClass().getClassLoader());
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
 

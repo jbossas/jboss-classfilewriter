@@ -25,10 +25,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.stuartdouglas.classfilewriter.ClassMethod;
 import com.stuartdouglas.classfilewriter.attributes.Attribute;
+import com.stuartdouglas.classfilewriter.attributes.StackMapTableAttribute;
 import com.stuartdouglas.classfilewriter.constpool.ConstPool;
 import com.stuartdouglas.classfilewriter.util.DescriptorUtils;
 
@@ -54,6 +57,8 @@ public class CodeAttribute extends Attribute {
 
     private int currentOffset;
 
+    private final List<Attribute> attributes = new ArrayList<Attribute>();
+
     public CodeAttribute(ClassMethod method, ConstPool constPool) {
         super(NAME, constPool);
         this.method = method;
@@ -73,34 +78,93 @@ public class CodeAttribute extends Attribute {
         }
         // creates a new initial stack frame
         currentFrame = new StackFrame(method);
+        stackFrames.put(0, currentFrame);
         currentOffset = 0;
+        // add the stack map table
+        attributes.add(new StackMapTableAttribute(method, constPool));
     }
+
+    @Override
+    public void writeData(DataOutputStream stream) throws IOException {
+        if (finalDataBytes.size() == 0) {
+            throw new RuntimeException("Code attribute is empty for method " + method.getName() + "  " + method.getDescriptor());
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(bos);
+        for (Attribute attribute : attributes) {
+            attribute.write(dos);
+        }
+
+        stream.writeInt(finalDataBytes.size() + 12 + bos.size()); // attribute length
+        stream.writeShort(maxStackDepth);
+        stream.writeShort(maxLocals);
+        stream.writeInt(finalDataBytes.size());
+        stream.write(finalDataBytes.toByteArray());
+        stream.writeShort(0); // exception table length
+        stream.writeShort(attributes.size()); // attributes count
+        stream.write(bos.toByteArray());
+    }
+
+    // -------------------------------------------
+    // Instruction methods, in alphabetical order
 
     /**
      * Adds the appropriate iconst instruction.
      * <p>
      * note, if the value is not in the range -1 to 5 ldc is written instead
-     * 
+     *
      * @param value
      */
     public void iconst(int value) {
-
+        if (value < -1 || value > 6) {
+            ldc(value);
+            return;
+        }
+        writeByte(Opcode.ICONST_0 + value);
+        currentOffset++;
+        advanceFrame(currentFrame.push("I"));
+    }
+    /**
+     * Adds an ldc instruction for an int.
+     *
+     * @param value
+     */
+    public void ldc(int value) {
+        if (value > -2 && value < 6) {
+            iconst(value);
+            return;
+        }
+        int index = constPool.addIntegerEntry(value);
+        ldcInternal(index);
+        advanceFrame(currentFrame.push("I"));
     }
 
     /**
      * Adds an ldc instruction for an int.
-     * 
+     *
      * @param value
      */
-    public void ldc(int value) {
-        int index = constPool.addIntegerEntry(value);
-
+    private void ldcInternal(int index) {
+        if (index > 0xFF) {
+            writeByte(Opcode.LDC_W);
+            writeShort(index);
+            currentOffset += 3;
+        } else {
+            writeByte(Opcode.LDC);
+            writeByte(index);
+            currentOffset += 2;
+        }
     }
 
     /**
      * Adds the appropriate return instruction for the methods return type.
      */
     public void returnInstruction() {
+        // all these instructions are one byte
+        currentOffset++;
+
+        // return instructions do not create stack map entries
+
         if (method.getReturnType().length() > 1) {
             writeByte(Opcode.ARETURN);
         } else {
@@ -128,19 +192,6 @@ public class CodeAttribute extends Attribute {
         }
     }
 
-    @Override
-    public void writeData(DataOutputStream stream) throws IOException {
-        if (finalDataBytes.size() == 0) {
-            throw new RuntimeException("Code attribute is empty for method " + method.getName() + "  " + method.getDescriptor());
-        }
-        stream.writeInt(finalDataBytes.size() + 12); // attribute length
-        stream.writeShort(maxStackDepth);
-        stream.writeShort(maxLocals);
-        stream.writeInt(finalDataBytes.size());
-        stream.write(finalDataBytes.toByteArray());
-        stream.writeShort(0); // exception table length
-        stream.writeShort(0); // attributes count
-    }
 
     private void writeByte(int n) {
         try {
@@ -150,7 +201,41 @@ public class CodeAttribute extends Attribute {
         }
     }
 
+    private void writeShort(int n) {
+        try {
+            data.writeShort(n);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public LinkedHashMap<Integer, StackFrame> getStackFrames() {
         return new LinkedHashMap<Integer, StackFrame>(stackFrames);
     }
+
+    /**
+     * Adds a duplicate of the current frame to the current position.
+     * <p>
+     * currently this just puts the same frame into a different position
+     */
+    private void duplicateFrame() {
+        stackFrames.put(currentOffset, currentFrame);
+        updateMaxValues();
+    }
+
+    private void advanceFrame(StackFrame frame) {
+        stackFrames.put(currentOffset, frame);
+        currentFrame = frame;
+        updateMaxValues();
+    }
+
+    private void updateMaxValues() {
+        if (currentFrame.getStackState().getContents().size() > maxStackDepth) {
+            maxStackDepth = currentFrame.getStackState().getContents().size();
+        }
+        if (currentFrame.getLocalVariableState().getContents().size() > maxLocals) {
+            maxLocals = currentFrame.getLocalVariableState().getContents().size();
+        }
+    }
+
 }

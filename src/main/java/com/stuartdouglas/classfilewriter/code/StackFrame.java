@@ -32,11 +32,6 @@ import com.stuartdouglas.classfilewriter.ClassMethod;
 public class StackFrame {
 
     /**
-     * The absolute bytecode offset of this frame
-     */
-    private final int position;
-
-    /**
      * The current state of the stack
      */
     private final StackState stackState;
@@ -50,13 +45,13 @@ public class StackFrame {
      * Creates the initial stack frame
      */
     public StackFrame(ClassMethod method) {
-        this.position = 0;
         this.stackState = new StackState(method.getClassFile().getConstPool());
         this.localVariableState = new LocalVariableState(method);
     }
 
-    public int getPosition() {
-        return position;
+    public StackFrame(StackState stackState, LocalVariableState localVariableState) {
+        this.stackState = stackState;
+        this.localVariableState = localVariableState;
     }
 
     public StackState getStackState() {
@@ -65,6 +60,19 @@ public class StackFrame {
 
     public LocalVariableState getLocalVariableState() {
         return localVariableState;
+    }
+
+    /**
+     * push an operand of the given type onto the stack
+     */
+    public StackFrame push(String type) {
+        StackState ns = stackState.push(type);
+        return new StackFrame(ns, localVariableState);
+    }
+
+    @Override
+    public String toString() {
+        return "StackFrame [localVariableState=" + localVariableState + ", stackState=" + stackState + "]";
     }
 
 }

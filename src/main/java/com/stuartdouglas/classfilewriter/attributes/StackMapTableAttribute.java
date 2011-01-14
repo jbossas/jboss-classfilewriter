@@ -75,7 +75,7 @@ public class StackMapTableAttribute extends Attribute {
     }
 
     /**
-     * writes a full frame to the stack map table
+     * writes a full_frame to the stack map table
      */
     private void writeFullFrame(DataOutputStream dstream, int offset, int position, StackFrame value) throws IOException {
         dstream.writeByte(FULL_FRAME);
