@@ -71,6 +71,17 @@ public class StackFrame {
     }
 
     /**
+     * pushes a null type onto the stack
+     * 
+     * @return
+     */
+    public StackFrame aconstNull() {
+        StackState ns = stackState.aconstNull();
+        return new StackFrame(ns, localVariableState);
+
+    }
+
+    /**
      * pops an operand from the stack
      */
     public StackFrame pop() {
@@ -117,5 +128,6 @@ public class StackFrame {
     public String toString() {
         return "StackFrame [localVariableState=" + localVariableState + ", stackState=" + stackState + "]";
     }
+
 
 }

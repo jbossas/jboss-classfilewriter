@@ -67,13 +67,17 @@ public class StackState {
             return false;
         }
         StackEntry entry = StackEntry.of(descriptor, constPool);
+        StackEntry top = top();
         if (entry.isWide()) {
             if (contents.size() == 1) {
                 return false;
             }
             return top_1().getType() == entry.getType();
         }
-        return top().getType() == entry.getType();
+        if (top.getType() == StackEntryType.NULL && entry.getType() == StackEntryType.OBJECT) {
+            return true;
+        }
+        return top.getType() == entry.getType();
     }
 
     public int size() {
@@ -88,6 +92,11 @@ public class StackState {
         if (entry.getType() == StackEntryType.DOUBLE || entry.getType() == StackEntryType.LONG) {
             newStack(entry, new StackEntry(StackEntryType.TOP, type));
         }
+        return newStack(entry);
+    }
+
+    public StackState aconstNull() {
+        StackEntry entry = new StackEntry(StackEntryType.NULL, null);
         return newStack(entry);
     }
 
@@ -157,7 +166,6 @@ public class StackState {
         }
         return newStack(t1, t2);
     }
-
     private StackState newStack(StackEntry... pushValues) {
         ArrayList<StackEntry> ret = new ArrayList<StackEntry>(pushValues.length + contents.size());
         ret.addAll(contents);
@@ -190,4 +198,5 @@ public class StackState {
     public List<StackEntry> getContents() {
         return Collections.unmodifiableList(contents);
     }
+
 }

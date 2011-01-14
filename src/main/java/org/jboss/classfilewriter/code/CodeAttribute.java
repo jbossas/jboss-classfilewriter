@@ -134,6 +134,12 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop3());
     }
 
+    public void aconstNull() {
+        writeByte(Opcode.ACONST_NULL);
+        currentOffset++;
+        advanceFrame(currentFrame.aconstNull());
+    }
+
     /**
      * Do not use Descriptor format (e.g. Ljava/lang/Object;)
      *
