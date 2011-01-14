@@ -111,14 +111,32 @@ public class CodeAttribute extends Attribute {
     // Instruction methods, in alphabetical order
 
     public void aaload() {
+        if (currentFrame.getStackState().top().getType() != StackEntryType.INT) {
+            throw new InvalidBytecodeException("aaload needs an integer on the top of the stack");
+        }
+        if (!currentFrame.getStackState().top_1().getDescriptor().startsWith("[")) {
+            throw new InvalidBytecodeException("aaload needs an array in position 2 on the stack");
+        }
         writeByte(Opcode.AALOAD);
         currentOffset++;
         advanceFrame(currentFrame.pop2push1("Ljava/lang/Object;"));
     }
 
+    public void aastore() {
+        if (currentFrame.getStackState().top_1().getType() != StackEntryType.INT) {
+            throw new InvalidBytecodeException("aastore needs an integer in position 2 on the stack");
+        }
+        if (!currentFrame.getStackState().top_2().getDescriptor().startsWith("[")) {
+            throw new InvalidBytecodeException("aaload needs an array in position 3 on the stack");
+        }
+        writeByte(Opcode.AASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop3());
+    }
+
     /**
      * Do not use Descriptor format (e.g. Ljava/lang/Object;)
-     * 
+     *
      * @param className
      */
     public void checkcast(String className) {
@@ -133,7 +151,7 @@ public class CodeAttribute extends Attribute {
      * Adds the appropriate fconst instruction.
      * <p>
      * note, if the value is not 0, 1, 2 then ldc is used instead
-     * 
+     *
      * @param value
      */
     public void fconst(float value) {
@@ -175,7 +193,7 @@ public class CodeAttribute extends Attribute {
      * Adds the appropriate iconst instruction.
      * <p>
      * note, if the value is not in the range -1 to 5 ldc is written instead
-     * 
+     *
      * @param value
      */
     public void iconst(int value) {
@@ -204,7 +222,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for float
-     * 
+     *
      * @param value
      */
     public void ldc(float value) {
@@ -217,7 +235,7 @@ public class CodeAttribute extends Attribute {
      * Adds an ldc instruction for a String
      * <p>
      * To load a class literal using ldc use the @{link #loadType(String)} method.
-     * 
+     *
      * @param value
      */
     public void ldc(String value) {
@@ -228,7 +246,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for an int.
-     * 
+     *
      * @param value
      */
     private void ldcInternal(int index) {
@@ -245,7 +263,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc2_w instruction for double
-     * 
+     *
      * @param value
      */
     public void ldc2(double value) {
@@ -258,7 +276,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc2_w instruction for long
-     * 
+     *
      * @param value
      */
     public void ldc2(long value) {

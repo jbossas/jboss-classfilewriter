@@ -79,6 +79,22 @@ public class StackFrame {
     }
 
     /**
+     * pops 2 operands from the stack
+     */
+    public StackFrame pop2() {
+        StackState ns = stackState.pop2();
+        return new StackFrame(ns, localVariableState);
+    }
+
+    /**
+     * pops 3 operands from the stack
+     */
+    public StackFrame pop3() {
+        StackState ns = stackState.pop3();
+        return new StackFrame(ns, localVariableState);
+    }
+
+    /**
      * replace the operand at the top of the stack with the given operand
      */
     public StackFrame replace(String type) {
@@ -96,13 +112,6 @@ public class StackFrame {
         return new StackFrame(ns, localVariableState);
     }
 
-    /**
-     * pops 2 operands from the stack
-     */
-    public StackFrame pop2() {
-        StackState ns = stackState.pop2();
-        return new StackFrame(ns, localVariableState);
-    }
 
     @Override
     public String toString() {

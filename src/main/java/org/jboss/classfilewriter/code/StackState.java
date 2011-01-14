@@ -119,6 +119,22 @@ public class StackState {
         return new StackState(contents.subList(0, contents.size() - 2), constPool);
     }
 
+    /**
+     * removes three items from the top of the stack
+     * 
+     * @return
+     */
+    public StackState pop3() {
+        if (contents.size() < 3) {
+            throw new InvalidBytecodeException("cannot pop3, only " + contents.size() + " on stack " + toString());
+        }
+        StackEntry type = top_2();
+        if (type.isWide()) {
+            throw new InvalidBytecodeException("Cannot pop3 when third type on stack is wide " + toString());
+        }
+        return new StackState(contents.subList(0, contents.size() - 3), constPool);
+    }
+
     public StackState dup() {
         if (contents.isEmpty()) {
             throw new InvalidBytecodeException("cannot dup empty stack");
@@ -151,20 +167,20 @@ public class StackState {
         return new StackState(ret, constPool);
     }
 
-    private StackEntry top() {
+    public StackEntry top() {
         return contents.get(contents.size() - 1);
     }
 
-    private StackEntry top_1() {
+    public StackEntry top_1() {
         return contents.get(contents.size() - 2);
     }
 
-    private StackEntry top_2() {
-        return contents.get(contents.size() - 2);
+    public StackEntry top_2() {
+        return contents.get(contents.size() - 3);
     }
 
-    private StackEntry top_3() {
-        return contents.get(contents.size() - 2);
+    public StackEntry top_3() {
+        return contents.get(contents.size() - 4);
     }
     @Override
     public String toString() {
