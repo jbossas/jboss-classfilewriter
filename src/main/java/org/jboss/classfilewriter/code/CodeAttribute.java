@@ -110,6 +110,25 @@ public class CodeAttribute extends Attribute {
     // -------------------------------------------
     // Instruction methods, in alphabetical order
 
+    public void aaload() {
+        writeByte(Opcode.AALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("Ljava/lang/Object;"));
+    }
+
+    /**
+     * Do not use Descriptor format (e.g. Ljava/lang/Object;)
+     * 
+     * @param className
+     */
+    public void checkcast(String className) {
+        int classIndex = constPool.addClassEntry(className);
+        writeByte(Opcode.CHECKCAST);
+        writeShort(classIndex);
+        currentOffset += 3;
+        advanceFrame(currentFrame.replace(className));
+    }
+
     /**
      * Adds the appropriate fconst instruction.
      * <p>
@@ -149,7 +168,7 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.PUTSTATIC);
         writeShort(index);
         currentOffset += 3;
-        advanceFrame(currentFrame.replace(descriptor));
+        advanceFrame(currentFrame.pop());
     }
 
     /**

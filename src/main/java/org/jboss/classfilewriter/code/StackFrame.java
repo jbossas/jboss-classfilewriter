@@ -88,6 +88,15 @@ public class StackFrame {
     }
 
     /**
+     * remote the top two operands and replace them with an different operand
+     * 
+     */
+    public StackFrame pop2push1(String type) {
+        StackState ns = stackState.pop2().push(type);
+        return new StackFrame(ns, localVariableState);
+    }
+
+    /**
      * pops 2 operands from the stack
      */
     public StackFrame pop2() {

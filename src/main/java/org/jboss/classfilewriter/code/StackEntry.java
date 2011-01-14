@@ -66,7 +66,12 @@ public class StackEntry {
         this.descriptor = descriptor;
         this.newInstructionLocation = -1;
         if(type == StackEntryType.OBJECT) {
-            descriptorIndex = pool.addClassEntry(descriptor.substring(1, descriptor.length() - 1)); // strip the L and the ;
+            if (descriptor.charAt(0) == 'L') {
+                descriptorIndex = pool.addClassEntry(descriptor.substring(1, descriptor.length() - 1)); // strip the L and the ;
+            } else {
+                descriptorIndex = pool.addClassEntry(descriptor); // strip the L and the ;
+            }
+
         } else {
             descriptorIndex = -1;
         }

@@ -47,7 +47,7 @@ public class MethodTester<T> {
     private Method createdMethod;
 
     public MethodTester(Class<T> returnType, Class<?>... params) {
-        ClassFile file = new ClassFile("org.jboss.classWriter" + methodNo++, "java.lang.Object");
+        ClassFile file = new ClassFile("org.jboss.classwriter.test.GeneratedClass" + methodNo++, "java.lang.Object");
         String[] nparams = new String[params.length];
         for(int i = 0; i < params.length;++i){
             nparams[i] = DescriptorUtils.classToStringRepresentation(params[i]);
