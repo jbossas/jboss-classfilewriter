@@ -95,6 +95,16 @@ public class StackState {
         return newStack(entry);
     }
 
+    /**
+     * push a type on to the top of the stack
+     */
+    public StackState push(StackEntry entry) {
+        if (entry.getType() == StackEntryType.DOUBLE || entry.getType() == StackEntryType.LONG) {
+            newStack(entry, new StackEntry(StackEntryType.TOP, entry.getDescriptor()));
+        }
+        return newStack(entry);
+    }
+
     public StackState aconstNull() {
         StackEntry entry = new StackEntry(StackEntryType.NULL, null);
         return newStack(entry);

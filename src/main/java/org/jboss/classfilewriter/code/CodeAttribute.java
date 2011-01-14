@@ -111,10 +111,10 @@ public class CodeAttribute extends Attribute {
     // Instruction methods, in alphabetical order
 
     public void aaload() {
-        if (currentFrame.getStackState().top().getType() != StackEntryType.INT) {
+        if (getStack().top().getType() != StackEntryType.INT) {
             throw new InvalidBytecodeException("aaload needs an integer on the top of the stack");
         }
-        if (!currentFrame.getStackState().top_1().getDescriptor().startsWith("[")) {
+        if (!getStack().top_1().getDescriptor().startsWith("[")) {
             throw new InvalidBytecodeException("aaload needs an array in position 2 on the stack");
         }
         writeByte(Opcode.AALOAD);
@@ -123,10 +123,10 @@ public class CodeAttribute extends Attribute {
     }
 
     public void aastore() {
-        if (currentFrame.getStackState().top_1().getType() != StackEntryType.INT) {
+        if (getStack().top_1().getType() != StackEntryType.INT) {
             throw new InvalidBytecodeException("aastore needs an integer in position 2 on the stack");
         }
-        if (!currentFrame.getStackState().top_2().getDescriptor().startsWith("[")) {
+        if (!getStack().top_2().getDescriptor().startsWith("[")) {
             throw new InvalidBytecodeException("aaload needs an array in position 3 on the stack");
         }
         writeByte(Opcode.AASTORE);
@@ -140,10 +140,61 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.aconstNull());
     }
 
+    public void aload(int no) {
+        LocalVariableState locals = getLocalVars();
+        if(locals.size()<= no) {
+            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
+        }
+        StackEntry entry = locals.get(no);
+        if (entry.getType() != StackEntryType.OBJECT && entry.getType() != StackEntryType.NULL) {
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables " + locals.toString());
+        }
+
+        if(no > 0xFF) {
+            //wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.ALOAD);
+            writeShort(no);
+            currentOffset+=4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.ALOAD_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.ALOAD);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.push(entry));
+    }
+
+    public void astore(int no) {
+        if (getStack().size() == 0) {
+            throw new InvalidBytecodeException("cannot astore when stack is empty");
+        }
+        StackEntry top = getStack().top();
+        if (top.getType() != StackEntryType.OBJECT && top.getType() != StackEntryType.NULL) {
+            throw new InvalidBytecodeException("astore requires reference on top of stack: " + getStack().toString());
+        }
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.ASTORE);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.ASTORE_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.ASTORE);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.store(no));
+    }
+
     /**
      * Do not use Descriptor format (e.g. Ljava/lang/Object;)
      *
-     * @param className
      */
     public void checkcast(String className) {
         int classIndex = constPool.addClassEntry(className);
@@ -158,7 +209,6 @@ public class CodeAttribute extends Attribute {
      * <p>
      * note, if the value is not 0, 1, 2 then ldc is used instead
      *
-     * @param value
      */
     public void fconst(float value) {
         if (value == 0) {
@@ -184,9 +234,9 @@ public class CodeAttribute extends Attribute {
     }
 
     public void putstatic(String className, String field, String descriptor) {
-        if (!currentFrame.getStackState().isOnTop(descriptor)) {
+        if (!getStack().isOnTop(descriptor)) {
             throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
-                    + field + " (" + descriptor + "). Stack State: " + currentFrame.getStackState().toString());
+                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
         }
         int index = constPool.addFieldEntry(className, field, descriptor);
         writeByte(Opcode.PUTSTATIC);
@@ -229,7 +279,6 @@ public class CodeAttribute extends Attribute {
     /**
      * Adds an ldc instruction for float
      *
-     * @param value
      */
     public void ldc(float value) {
         int index = constPool.addFloatEntry(value);
@@ -242,7 +291,6 @@ public class CodeAttribute extends Attribute {
      * <p>
      * To load a class literal using ldc use the @{link #loadType(String)} method.
      *
-     * @param value
      */
     public void ldc(String value) {
         int index = constPool.addStringEntry(value);
@@ -253,7 +301,6 @@ public class CodeAttribute extends Attribute {
     /**
      * Adds an ldc instruction for an int.
      *
-     * @param value
      */
     private void ldcInternal(int index) {
         if (index > 0xFF) {
@@ -270,7 +317,6 @@ public class CodeAttribute extends Attribute {
     /**
      * Adds an ldc2_w instruction for double
      *
-     * @param value
      */
     public void ldc2(double value) {
         int index = constPool.addDoubleEntry(value);
@@ -283,7 +329,6 @@ public class CodeAttribute extends Attribute {
     /**
      * Adds an ldc2_w instruction for long
      *
-     * @param value
      */
     public void ldc2(long value) {
         int index = constPool.addLongEntry(value);
@@ -293,6 +338,9 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.push("J"));
     }
 
+    /**
+     * Loads a java.lang.Class for the given descriptor into the stack.
+     */
     public void loadType(String descriptor) {
         if (descriptor.length() != 1) {
             if (descriptor.startsWith("L") && descriptor.endsWith(";")) {
@@ -354,7 +402,7 @@ public class CodeAttribute extends Attribute {
     public void returnInstruction() {
         String returnType = method.getReturnType();
         if (!returnType.equals("V")) {
-            if (!currentFrame.getStackState().isOnTop(returnType)) {
+            if (!getStack().isOnTop(returnType)) {
                 throw new InvalidBytecodeException(returnType + " is not on top of stack");
             }
         }
@@ -428,13 +476,22 @@ public class CodeAttribute extends Attribute {
         updateMaxValues();
     }
 
+
     private void updateMaxValues() {
-        if (currentFrame.getStackState().getContents().size() > maxStackDepth) {
-            maxStackDepth = currentFrame.getStackState().getContents().size();
+        if (getStack().getContents().size() > maxStackDepth) {
+            maxStackDepth = getStack().getContents().size();
         }
-        if (currentFrame.getLocalVariableState().getContents().size() > maxLocals) {
-            maxLocals = currentFrame.getLocalVariableState().getContents().size();
+        if (getLocalVars().getContents().size() > maxLocals) {
+            maxLocals = getLocalVars().getContents().size();
         }
+    }
+
+    private LocalVariableState getLocalVars() {
+        return currentFrame.getLocalVariableState();
+    }
+
+    private StackState getStack() {
+        return currentFrame.getStackState();
     }
 
 }

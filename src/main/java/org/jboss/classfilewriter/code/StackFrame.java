@@ -71,6 +71,16 @@ public class StackFrame {
     }
 
     /**
+     * push an operand of the given type onto the stack.
+     * <p>
+     * If the entry is wide then a corresponding TOP type will be created
+     */
+    public StackFrame push(StackEntry entry) {
+        StackState ns = stackState.push(entry);
+        return new StackFrame(ns, localVariableState);
+    }
+
+    /**
      * pushes a null type onto the stack
      * 
      * @return
@@ -115,6 +125,26 @@ public class StackFrame {
     }
 
     /**
+     * Store the variable on top of the stack into a local variable, poping the variable from the stack. Wide types are handled
+     * automatically
+     */
+    public StackFrame store(int no) {
+        StackEntry top = stackState.top();
+        StackState ns;
+        LocalVariableState ls;
+        if(top.getType() == StackEntryType.TOP) { //wide type
+            StackEntry type = stackState.top_1();
+            ns = stackState.pop2();
+            ls = localVariableState.storeWide(no, type);
+        } else {
+            StackEntry type = stackState.top();
+            ns = stackState.pop();
+            ls = localVariableState.store(no, type);
+        }
+        return new StackFrame(ns,ls);
+    }
+
+    /**
      * remote the top two operands and replace them with an different operand
      * 
      */
@@ -123,11 +153,9 @@ public class StackFrame {
         return new StackFrame(ns, localVariableState);
     }
 
-
     @Override
     public String toString() {
         return "StackFrame [localVariableState=" + localVariableState + ", stackState=" + stackState + "]";
     }
-
 
 }

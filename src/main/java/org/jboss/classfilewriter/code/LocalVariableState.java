@@ -27,7 +27,6 @@ import java.util.List;
 
 import org.jboss.classfilewriter.ClassMethod;
 
-
 /**
  * In immutable local variable state
  * 
@@ -72,6 +71,48 @@ public class LocalVariableState {
 
     public List<StackEntry> getContents() {
         return Collections.unmodifiableList(contents);
+    }
+
+    public StackEntry get(int index) {
+        return contents.get(index);
+    }
+
+    public LocalVariableState storeWide(int index, StackEntry entry) {
+        ArrayList<StackEntry> newContents = new ArrayList<StackEntry>(contents.size());
+        for (int i = 0; i <= index || i < contents.size(); ++i) {
+            if (index == i) {
+                newContents.add(entry);
+                newContents.add(new StackEntry(StackEntryType.TOP, entry.getDescriptor()));
+                ++i;
+            } else if (i >= contents.size()) {
+                // write a null in unitialised slots
+                // not sure if this is correct
+                newContents.add(new StackEntry(StackEntryType.NULL, null));
+            } else {
+                newContents.add(contents.get(i));
+            }
+        }
+        return new LocalVariableState(newContents);
+    }
+
+    public LocalVariableState store(int index, StackEntry entry) {
+        ArrayList<StackEntry> newContents = new ArrayList<StackEntry>(contents.size());
+        for (int i = 0; i <= index || i < contents.size(); ++i) {
+            if (index == i) {
+                newContents.add(entry);
+            } else if (i >= contents.size()) {
+                // write a null in unitialised slots
+                // not sure if this is correct
+                newContents.add(new StackEntry(StackEntryType.NULL, null));
+            } else {
+                newContents.add(contents.get(i));
+            }
+        }
+        return new LocalVariableState(newContents);
+    }
+
+    public int size() {
+        return contents.size();
     }
 
     @Override
