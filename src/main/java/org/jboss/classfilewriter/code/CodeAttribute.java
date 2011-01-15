@@ -243,6 +243,14 @@ public class CodeAttribute extends Attribute {
         currentFrame = null;
     }
 
+    public void baload() {
+        assertTypeOnStack(StackEntryType.INT, "baload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "baload requires an array in position 2 on the stack");
+        writeByte(Opcode.BALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
     /**
      * marks the end of a branch. The current stack frame is checked for compatibility with the stack frame at the branch start
      */
@@ -633,15 +641,21 @@ public class CodeAttribute extends Attribute {
         return currentFrame.getStackState();
     }
 
-    public void assertTypeOnStack(StackEntryType type, String message) {
-        if (getStack().size() == 0) {
+    public void assertTypeOnStack(int position, StackEntryType type, String message) {
+        if (getStack().size() <= position) {
             throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
         }
-        if (getStack().top().getType() != type) {
-            if (!(type == StackEntryType.OBJECT && getStack().top().getType() == StackEntryType.NULL)) {
+        int index = getStack().getContents().size() - 1 - position;
+        StackEntryType stype = getStack().getContents().get(index).getType();
+        if (stype != type) {
+            if (!(type == StackEntryType.OBJECT && stype == StackEntryType.NULL)) {
                 throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
             }
         }
+    }
+
+    public void assertTypeOnStack(StackEntryType type, String message) {
+        assertTypeOnStack(0, type, message);
     }
 
     /**
