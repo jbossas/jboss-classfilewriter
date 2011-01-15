@@ -305,6 +305,41 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.replace(className));
     }
 
+    public void d2f() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "d2f requires double on stack");
+        writeByte(Opcode.D2F);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("F"));
+    }
+
+    public void dload(int no) {
+        LocalVariableState locals = getLocalVars();
+        if (locals.size() <= no) {
+            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
+        }
+        StackEntry entry = locals.get(no);
+        if (entry.getType() != StackEntryType.DOUBLE) {
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
+                    + locals.toString());
+        }
+
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.DLOAD);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.DLOAD_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.ALOAD);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.push(entry));
+    }
+
     /**
      * Begin writing an exception handler block. The handler is not actually persisted until exceptionHandler is called.
      */
@@ -679,6 +714,9 @@ public class CodeAttribute extends Attribute {
             throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
         }
         int index = getStack().getContents().size() - 1 - position;
+        if (type == StackEntryType.DOUBLE || type == StackEntryType.LONG) {
+            index -= 1;
+        }
         StackEntryType stype = getStack().getContents().get(index).getType();
         if (stype != type) {
             if (!(type == StackEntryType.OBJECT && stype == StackEntryType.NULL)) {

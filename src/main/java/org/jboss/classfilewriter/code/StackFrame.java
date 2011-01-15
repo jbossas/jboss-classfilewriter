@@ -25,9 +25,9 @@ import org.jboss.classfilewriter.ClassMethod;
 
 /**
  * Represents a stack frame in the virtual machine. Holds the state of the local variable array and the stack
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class StackFrame {
 
@@ -64,6 +64,8 @@ public class StackFrame {
 
     /**
      * push an operand of the given type onto the stack
+     * <p>
+     * If the entry is wide then a corresponding TOP type will be created
      */
     public StackFrame push(String type) {
         StackState ns = stackState.push(type);
@@ -82,7 +84,7 @@ public class StackFrame {
 
     /**
      * pushes a null type onto the stack
-     * 
+     *
      * @return
      */
     public StackFrame aconstNull() {
@@ -146,7 +148,7 @@ public class StackFrame {
 
     /**
      * remote the top two operands and replace them with an different operand
-     * 
+     *
      */
     public StackFrame pop2push1(String type) {
         StackState ns = stackState.pop2().push(type);

@@ -96,7 +96,7 @@ public class StackState {
     public StackState push(String type) {
         StackEntry entry = StackEntry.of(type, constPool);
         if (entry.getType() == StackEntryType.DOUBLE || entry.getType() == StackEntryType.LONG) {
-            newStack(entry, new StackEntry(StackEntryType.TOP, type));
+            return newStack(entry, new StackEntry(StackEntryType.TOP, type));
         }
         return newStack(entry);
     }
@@ -106,7 +106,7 @@ public class StackState {
      */
     public StackState push(StackEntry entry) {
         if (entry.getType() == StackEntryType.DOUBLE || entry.getType() == StackEntryType.LONG) {
-            newStack(entry, new StackEntry(StackEntryType.TOP, entry.getDescriptor()));
+            return newStack(entry, new StackEntry(StackEntryType.TOP, entry.getDescriptor()));
         }
         return newStack(entry);
     }
@@ -138,7 +138,7 @@ public class StackState {
             throw new InvalidBytecodeException("cannot pop2, only " + contents.size() + " on stack " + toString());
         }
         StackEntry type = top_1();
-        if (type.isWide()) {
+        if (type.getType() == StackEntryType.TOP) {
             throw new InvalidBytecodeException("Cannot pop2 when second type on stack is wide " + toString());
         }
         return new StackState(contents.subList(0, contents.size() - 2), constPool);

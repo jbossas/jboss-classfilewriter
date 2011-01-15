@@ -24,11 +24,14 @@ package org.jboss.classfilewriter.attributes;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.code.StackEntry;
+import org.jboss.classfilewriter.code.StackEntryType;
 import org.jboss.classfilewriter.code.StackFrame;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
@@ -85,8 +88,14 @@ public class StackMapTableAttribute extends Attribute {
         for (StackEntry i : value.getLocalVariableState().getContents()) {
             i.write(dstream, position);
         }
-        dstream.writeShort(value.getStackState().getContents().size());
+        List<StackEntry> realStack = new ArrayList<StackEntry>(value.getStackState().getContents().size());
         for (StackEntry i : value.getStackState().getContents()) {
+            if (i.getType() != StackEntryType.TOP) {
+                realStack.add(i);
+            }
+        }
+        dstream.writeShort(realStack.size());
+        for (StackEntry i : realStack) {
             i.write(dstream, position);
         }
     }

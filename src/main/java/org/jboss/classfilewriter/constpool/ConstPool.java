@@ -123,6 +123,7 @@ public class ConstPool implements WritableEntry {
             return longLocations.get(entry);
         }
         final short index = count++;
+        count++;
         constPoolSize += 2;
         entries.put(index, new LongEntry(entry));
         longLocations.put(entry, index);
@@ -134,6 +135,7 @@ public class ConstPool implements WritableEntry {
             return doubleLocations.get(entry);
         }
         final short index = count++;
+        count++;
         constPoolSize += 2;
         entries.put(index, new DoubleEntry(entry));
         doubleLocations.put(entry, index);
