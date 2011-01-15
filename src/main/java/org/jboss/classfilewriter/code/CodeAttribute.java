@@ -415,7 +415,7 @@ public class CodeAttribute extends Attribute {
             writeByte(Opcode.DLOAD_0 + no);
             currentOffset++;
         } else {
-            writeByte(Opcode.ALOAD);
+            writeByte(Opcode.DLOAD);
             writeByte(no);
             currentOffset += 2;
         }
@@ -526,7 +526,7 @@ public class CodeAttribute extends Attribute {
     /**
      * Mark the end of an exception handler block. The last instruction that was written will be the last instruction covered by
      * the handler
-     *
+     * 
      */
     public void exceptionHandlerEnd(ExceptionHandler handler) {
         handler.setEnd(currentOffset);
@@ -545,6 +545,69 @@ public class CodeAttribute extends Attribute {
         mergeStackFrames(new StackFrame(new StackState(handler.getExceptionType(), constPool), handler.getFrame()
                 .getLocalVariableState()));
     }
+
+    public void f2d() {
+        assertTypeOnStack(StackEntryType.FLOAT, "f2s requires float on stack");
+        writeByte(Opcode.F2D);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("D"));
+    }
+
+    public void f2i() {
+        assertTypeOnStack(StackEntryType.FLOAT, "f2i requires float on stack");
+        writeByte(Opcode.F2I);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("I"));
+    }
+
+    public void f2l() {
+        assertTypeOnStack(StackEntryType.FLOAT, "f2l requires float on stack");
+        writeByte(Opcode.F2L);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("J"));
+    }
+
+    public void fadd() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fadd requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "fadd requires float on stack");
+        writeByte(Opcode.FADD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void faload() {
+        assertTypeOnStack(StackEntryType.INT, "faload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "faload requires an array in position 2 on the stack");
+        writeByte(Opcode.FALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("F"));
+    }
+
+    public void fastore() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fastore requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.INT, "fastore requires an int in position 2 on the stack");
+        assertTypeOnStack(2, StackEntryType.OBJECT, "fastore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.FASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop3());
+    }
+
+    public void fcmpg() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fcmpg requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "fcmpg requires float on stack");
+        writeByte(Opcode.FCMPG);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
+    public void fcmpl() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fcmpl requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "fcmpl requires float in position 2 on stack");
+        writeByte(Opcode.FCMPL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
 
     /**
      * Adds the appropriate fconst instruction.
@@ -565,6 +628,50 @@ public class CodeAttribute extends Attribute {
         }
         currentOffset++;
         advanceFrame(currentFrame.push("F"));
+    }
+
+    public void fdiv() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fdiv requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "fdiv requires float in position 2 on stack");
+        writeByte(Opcode.FDIV);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void fload(int no) {
+        LocalVariableState locals = getLocalVars();
+        if (locals.size() <= no) {
+            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
+        }
+        StackEntry entry = locals.get(no);
+        if (entry.getType() != StackEntryType.FLOAT) {
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
+                    + locals.toString());
+        }
+
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.FLOAD);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.FLOAD_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.FLOAD);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.push(entry));
+    }
+
+    public void fmul() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fmul requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "fmul requires float in position 2 on stack");
+        writeByte(Opcode.FMUL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
     }
 
     public void getstatic(String className, String field, String descriptor) {
