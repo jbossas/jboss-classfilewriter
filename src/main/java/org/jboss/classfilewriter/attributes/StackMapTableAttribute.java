@@ -84,10 +84,17 @@ public class StackMapTableAttribute extends Attribute {
     private void writeFullFrame(DataOutputStream dstream, int offset, int position, StackFrame value) throws IOException {
         dstream.writeByte(FULL_FRAME);
         dstream.writeShort(offset);
-        dstream.writeShort(value.getLocalVariableState().getContents().size());
+        List<StackEntry> realLocalVars = new ArrayList<StackEntry>(value.getLocalVariableState().getContents().size());
         for (StackEntry i : value.getLocalVariableState().getContents()) {
+            if (i.getType() != StackEntryType.TOP) {
+                realLocalVars.add(i);
+            }
+        }
+        dstream.writeShort(realLocalVars.size());
+        for (StackEntry i : realLocalVars) {
             i.write(dstream, position);
         }
+        // TODO: this is inefficient, the stack should store the number of TOP values in each frame
         List<StackEntry> realStack = new ArrayList<StackEntry>(value.getStackState().getContents().size());
         for (StackEntry i : value.getStackState().getContents()) {
             if (i.getType() != StackEntryType.TOP) {
