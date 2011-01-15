@@ -210,6 +210,13 @@ public class CodeAttribute extends Attribute {
         }
     }
 
+    public void arraylength() {
+        assertTypeOnStack(StackEntryType.OBJECT, "arraylength requires array on stack");
+        writeByte(Opcode.ARRAYLENGTH);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("I"));
+    }
+
     public void astore(int no) {
         assertTypeOnStack(StackEntryType.OBJECT, "aastore requires reference type on stack");
         if (no > 0xFF) {

@@ -19,45 +19,24 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.test.bytecode.handler;
+package org.jboss.classfilewriter.test.bytecode;
 
 import junit.framework.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
-import org.jboss.classfilewriter.code.ExceptionHandler;
-import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
 
-public class ExceptionHandlerTest {
-    public static Integer[] VALUE;
+public class ArraylengthTest {
+
+    public static Integer[] VALUE = { 1, 2, 3 };
 
     @Test
-    public void testWithNpe() {
+    public void testAaload() {
         MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ExceptionHandler handler = ca.exceptionHandlerStart("java/lang/RuntimeException");
         ca.getstatic(getClass().getName(), "VALUE", "[Ljava/lang/Integer;");
         ca.arraylength();
         ca.returnInstruction();
-        ca.exceptionHandlerEnd(handler);
-        ca.exceptionHandlerAdd(handler);
-        ca.iconst(1);
-        ca.returnInstruction();
-        Assert.assertEquals(1, (int) mt.invoke());
+        Assert.assertEquals(3, (int) mt.invoke());
     }
-
-    @Test
-    public void testNotCalled() {
-        MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
-        CodeAttribute ca = mt.getCodeAttribute();
-        ExceptionHandler handler = ca.exceptionHandlerStart("java/lang/RuntimeException");
-        ca.iconst(200);
-        ca.returnInstruction();
-        ca.exceptionHandlerEnd(handler);
-        ca.exceptionHandlerAdd(handler);
-        ca.iconst(20);
-        ca.returnInstruction();
-        Assert.assertEquals(200, (int) mt.invoke());
-    }
-
 }
