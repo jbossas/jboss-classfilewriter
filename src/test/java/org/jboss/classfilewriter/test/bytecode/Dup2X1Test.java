@@ -43,7 +43,7 @@ public class Dup2X1Test {
     }
 
     @Test
-    public void dup2WideTest() {
+    public void dup2X1WideTest() {
         MethodTester<Double> mt = new MethodTester<Double>(double.class);
         CodeAttribute ca = mt.getCodeAttribute();
         ca.iconst(0);

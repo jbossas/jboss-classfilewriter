@@ -241,12 +241,41 @@ public class StackState {
         }
         StackEntry t1 = top();
         StackEntry t2 = top_1();
+        StackEntry t3 = top_2();
         if (t2.getType() == StackEntryType.TOP) {
             throw new InvalidBytecodeException("Cannot dup2X1 when second type on stack is wide: " + toString());
+        }
+        if (t3.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot dup2X2 when third type on stack is wide: " + toString());
         }
         ArrayList<StackEntry> ret = new ArrayList<StackEntry>(2 + contents.size());
         for (int i = 0; i < contents.size(); ++i) {
             if (i == contents.size() - 3) {
+                ret.add(t2);
+                ret.add(t1);
+            }
+            ret.add(contents.get(i));
+        }
+        return new StackState(ret, constPool);
+    }
+
+    public StackState dup2X2() {
+        if (contents.size() < 4) {
+            throw new InvalidBytecodeException("cannot dup2X2, stack size is " + contents.size() + " " + toString());
+        }
+        StackEntry t1 = top();
+        StackEntry t2 = top_1();
+        StackEntry t3 = top_2();
+        StackEntry t4 = top_3();
+        if (t2.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot dup2X2 when second type on stack is wide: " + toString());
+        }
+        if (t4.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot dup2X2 when fourth type on stack is wide: " + toString());
+        }
+        ArrayList<StackEntry> ret = new ArrayList<StackEntry>(2 + contents.size());
+        for (int i = 0; i < contents.size(); ++i) {
+            if (i == contents.size() - 4) {
                 ret.add(t2);
                 ret.add(t1);
             }

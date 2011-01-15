@@ -507,6 +507,13 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.dup2X1());
     }
 
+    public void dup2X2() {
+        assertNotWideOnStack(3, "dup2_x2 cannot be used if double or long is in position 4 on the stack");
+        writeByte(Opcode.DUP2_X2);
+        currentOffset++;
+        advanceFrame(currentFrame.dup2X2());
+    }
+
     /**
      * Begin writing an exception handler block. The handler is not actually persisted until exceptionHandler is called.
      */
