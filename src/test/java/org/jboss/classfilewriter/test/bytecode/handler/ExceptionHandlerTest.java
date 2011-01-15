@@ -19,31 +19,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.test.bytecode;
+package org.jboss.classfilewriter.test.bytecode.handler;
 
 import junit.framework.Assert;
 
-import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
+import org.jboss.classfilewriter.code.ExceptionHandler;
+import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
 
-public class IfnullTest {
-
-    public static Integer value = null;
+public class ExceptionHandlerTest {
 
     @Test
-    public void testIfNull() {
+    public void testNotCalled() {
         MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.getstatic(getClass().getName(), "value", "Ljava/lang/Integer;");
-        BranchEnd end = ca.ifnull();
-        ca.iconst(10);
+        ExceptionHandler handler = ca.exceptionHandlerStart("java/lang/RuntimeException");
+        ca.iconst(200);
         ca.returnInstruction();
-        ca.branchEnd(end);
-        ca.iconst(0);
+        ca.exceptionHandlerEnd(handler);
+        ca.exceptionHandlerAdd(handler);
+        ca.iconst(20);
         ca.returnInstruction();
-        Assert.assertEquals(0, (int) mt.invoke());
-        value = 1;
-        Assert.assertEquals(10, (int) mt.invoke());
+        mt.dump();
+        Assert.assertEquals(200, (int) mt.invoke());
     }
+
 }

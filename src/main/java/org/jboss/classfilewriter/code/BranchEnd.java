@@ -33,7 +33,7 @@ public class BranchEnd {
 
     private final StackFrame stackFrame;
 
-    public BranchEnd(int branchLocation, StackFrame stackFrame) {
+    BranchEnd(int branchLocation, StackFrame stackFrame) {
         this.branchLocation = branchLocation;
         this.stackFrame = stackFrame;
     }

@@ -22,34 +22,55 @@
 package org.jboss.classfilewriter.code;
 
 /**
- * Represents a location in the bytecode.
  * 
  * @author Stuart Douglas
  * 
  */
-public class CodeLocation {
+public class ExceptionHandler {
 
-    /**
-     * The absolution location in the bytecode stream. This will always point to a valid jump location
-     */
-    private final int location;
+    private final int start;
+    private final int exceptionIndex;
+    private final String exceptionType;
+    private final StackFrame frame;
+    private int end;
+    private int handler;
 
-    /**
-     * The stack frame at the given bytecode location
-     */
-    private final StackFrame stackFrame;
-
-    CodeLocation(int location, StackFrame stackFrame) {
-        this.location = location;
-        this.stackFrame = stackFrame;
+    ExceptionHandler(int start, int exceptionIndex, String exceptionType, StackFrame frame) {
+        this.start = start;
+        this.exceptionIndex = exceptionIndex;
+        this.exceptionType = exceptionType;
+        this.frame = frame;
     }
 
-    int getLocation() {
-        return location;
+    int getEnd() {
+        return end;
     }
 
-    StackFrame getStackFrame() {
-        return stackFrame;
+    void setEnd(int end) {
+        this.end = end;
     }
 
+    int getHandler() {
+        return handler;
+    }
+
+    void setHandler(int handler) {
+        this.handler = handler;
+    }
+
+    int getStart() {
+        return start;
+    }
+
+    int getExceptionIndex() {
+        return exceptionIndex;
+    }
+
+    StackFrame getFrame() {
+        return frame;
+    }
+
+    public String getExceptionType() {
+        return exceptionType;
+    }
 }

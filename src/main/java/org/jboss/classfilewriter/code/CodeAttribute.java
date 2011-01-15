@@ -74,6 +74,8 @@ public class CodeAttribute extends Attribute {
 
     private final StackMapTableAttribute stackMapTableAttribute;
 
+    private final List<ExceptionHandler> exceptionTable = new ArrayList<ExceptionHandler>();
+
     public CodeAttribute(ClassMethod method, ConstPool constPool) {
         super(NAME, constPool);
         this.method = method;
@@ -120,12 +122,18 @@ public class CodeAttribute extends Attribute {
             attribute.write(dos);
         }
 
-        stream.writeInt(finalDataBytes.size() + 12 + bos.size()); // attribute length
+        stream.writeInt(finalDataBytes.size() + 12 + bos.size() + (exceptionTable.size() * 8)); // attribute length
         stream.writeShort(maxStackDepth);
         stream.writeShort(maxLocals);
         stream.writeInt(bytecode.length);
         stream.write(bytecode);
-        stream.writeShort(0); // exception table length
+        stream.writeShort(exceptionTable.size()); // exception table length
+        for (ExceptionHandler exception : exceptionTable) {
+            stream.writeShort(exception.getStart());
+            stream.writeShort(exception.getEnd());
+            stream.writeShort(exception.getHandler());
+            stream.writeShort(exception.getExceptionIndex());
+        }
         stream.writeShort(attributes.size()); // attributes count
         stream.write(bos.toByteArray());
     }
@@ -134,9 +142,7 @@ public class CodeAttribute extends Attribute {
     // Instruction methods, in alphabetical order
 
     public void aaload() {
-        if (getStack().top().getType() != StackEntryType.INT) {
-            throw new InvalidBytecodeException("aaload needs an integer on the top of the stack");
-        }
+        assertTypeOnStack(StackEntryType.INT, "aaload requires int on top of stack");
         if (!getStack().top_1().getDescriptor().startsWith("[")) {
             throw new InvalidBytecodeException("aaload needs an array in position 2 on the stack");
         }
@@ -146,6 +152,7 @@ public class CodeAttribute extends Attribute {
     }
 
     public void aastore() {
+        assertTypeOnStack(StackEntryType.OBJECT, "aastore requires reference type on top of stack");
         if (getStack().top_1().getType() != StackEntryType.INT) {
             throw new InvalidBytecodeException("aastore needs an integer in position 2 on the stack");
         }
@@ -191,10 +198,7 @@ public class CodeAttribute extends Attribute {
     }
 
     public void anewarray(String arrayType) {
-        assertNotEmptyStack("cannot anewarray when stack is empty");
-        if (getStack().top().getType() != StackEntryType.INT) {
-            throw new InvalidBytecodeException("anewarray requires an int on top of the operand stack");
-        }
+        assertTypeOnStack(StackEntryType.INT, "anewarray requires int on stack");
         int index = constPool.addClassEntry(arrayType);
         writeByte(Opcode.ANEWARRAY);
         writeShort(index);
@@ -207,11 +211,7 @@ public class CodeAttribute extends Attribute {
     }
 
     public void astore(int no) {
-        assertNotEmptyStack("cannot astore when stack is empty");
-        StackEntry top = getStack().top();
-        if (top.getType() != StackEntryType.OBJECT && top.getType() != StackEntryType.NULL) {
-            throw new InvalidBytecodeException("astore requires reference on top of stack: " + getStack().toString());
-        }
+        assertTypeOnStack(StackEntryType.OBJECT, "aastore requires reference type on stack");
         if (no > 0xFF) {
             // wide version
             writeByte(Opcode.WIDE);
@@ -239,14 +239,47 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Do not use Descriptor format (e.g. Ljava/lang/Object;), the correct form is just java/lang/Object or java.lang.Object
-     * 
+     *
      */
     public void checkcast(String className) {
+        assertTypeOnStack(StackEntryType.OBJECT, "checkcast requires reference type on stack");
         int classIndex = constPool.addClassEntry(className);
         writeByte(Opcode.CHECKCAST);
         writeShort(classIndex);
         currentOffset += 3;
         advanceFrame(currentFrame.replace(className));
+    }
+
+    /**
+     * Begin writing an exception handler block. The handler is not actually persisted until exceptionHandler is called.
+     */
+    public ExceptionHandler exceptionHandlerStart(String exceptionType) {
+        ExceptionHandler handler = new ExceptionHandler(currentOffset, constPool.addClassEntry(exceptionType), exceptionType,
+                currentFrame);
+        return handler;
+    }
+
+    /**
+     * Mark the end of an exception handler block. The last instruction that was written will be the last instruction covered by
+     * the handler
+     *
+     */
+    public void exceptionHandlerEnd(ExceptionHandler handler) {
+        handler.setEnd(currentOffset);
+    }
+
+    /**
+     * Marks the current code location as the exception handler and adds the handler to the exception handler table;
+     */
+    public void exceptionHandlerAdd(ExceptionHandler handler) {
+        if (handler.getEnd() == 0) {
+            throw new InvalidBytecodeException(
+                    "handler end location must be initialised via exceptionHandlerEnd before calling exceptionHandlerAdd");
+        }
+        handler.setHandler(currentOffset);
+        exceptionTable.add(handler);
+        mergeStackFrames(new StackFrame(new StackState(handler.getExceptionType(), constPool), handler.getFrame()
+                .getLocalVariableState()));
     }
 
     /**
@@ -311,11 +344,7 @@ public class CodeAttribute extends Attribute {
      * Jump to the given location if the reference type on the top of the stack is null
      */
     public void ifnull(CodeLocation location) {
-        StackEntry top = getStack().top();
-        if (top.getType() != StackEntryType.NULL && top.getType() != StackEntryType.OBJECT) {
-            throw new InvalidBytecodeException("ifnull requires reference type on top of the stack");
-        }
-
+        assertTypeOnStack(StackEntryType.OBJECT, "ifnull requires reference type on stack");
         writeByte(Opcode.IFNULL);
         writeShort(location.getLocation() - currentOffset);
         mergeStackFrames(location.getStackFrame());
@@ -329,6 +358,7 @@ public class CodeAttribute extends Attribute {
      * The {@link BranchEnd} returned from this method is used to set the end point to a future point in the bytecode stream
      */
     public BranchEnd ifnull() {
+        assertTypeOnStack(StackEntryType.OBJECT, "ifnull requires reference type on stack");
         writeByte(Opcode.IFNULL);
         writeShort(0);
         currentOffset += 3;
@@ -463,7 +493,7 @@ public class CodeAttribute extends Attribute {
     /**
      * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
      * instruction that is written to the bytecode stream
-     * 
+     *
      */
     public CodeLocation mark() {
         return new CodeLocation(currentOffset, currentFrame);
@@ -544,7 +574,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * overwrites a 16 bit value in the already written bytecode data
-     * 
+     *
      */
     public void overwriteShort(byte[] bytecode, int offset, int value) {
         bytecode[offset] = (byte) (value >> 8);
@@ -589,9 +619,14 @@ public class CodeAttribute extends Attribute {
         return currentFrame.getStackState();
     }
 
-    private void assertNotEmptyStack(String message) {
+    public void assertTypeOnStack(StackEntryType type, String message) {
         if (getStack().size() == 0) {
             throw new InvalidBytecodeException(message);
+        }
+        if (getStack().top().getType() != type) {
+            if (!(type == StackEntryType.OBJECT && getStack().top().getType() == StackEntryType.NULL)) {
+                throw new InvalidBytecodeException(message);
+            }
         }
     }
 
@@ -600,7 +635,7 @@ public class CodeAttribute extends Attribute {
      * <p>
      * If the frames are incompatible then an {@link InvalidBytecodeException} is thrown. If the frames cannot be properly
      * merged then the stack map is marked as invalid
-     * 
+     *
      */
     private void mergeStackFrames(StackFrame stackFrame) {
         if (currentFrame == null) {

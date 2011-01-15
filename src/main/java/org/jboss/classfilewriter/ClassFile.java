@@ -193,6 +193,7 @@ public class ClassFile implements WritableEntry {
     }
 
     public byte[] toBytecode() {
+        // TODO: throw illegal state exception if the class file is modified after writing
         if (bytecode == null) {
             try {
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
