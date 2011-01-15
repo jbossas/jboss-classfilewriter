@@ -479,6 +479,27 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.dup());
     }
 
+    public void dupX1() {
+        assertNotWideOnStack("dup_x1 cannot be used if double or long is on top of the stack");
+        assertNotWideOnStack(1, "dup_x1 cannot be used if double or long is in position 2 on the stack");
+        writeByte(Opcode.DUP_X1);
+        currentOffset++;
+        advanceFrame(currentFrame.dupX1());
+    }
+
+    public void dupX2() {
+        assertNotWideOnStack("dup_x2 acnnot be used if double or long is on top of the stack");
+        writeByte(Opcode.DUP_X2);
+        currentOffset++;
+        advanceFrame(currentFrame.dupX2());
+    }
+
+    public void dup2() {
+        writeByte(Opcode.DUP2);
+        currentOffset++;
+        advanceFrame(currentFrame.dup2());
+    }
+
     /**
      * Begin writing an exception handler block. The handler is not actually persisted until exceptionHandler is called.
      */

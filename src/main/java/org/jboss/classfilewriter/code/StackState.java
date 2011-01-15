@@ -187,6 +187,42 @@ public class StackState {
         return newStack(type);
     }
 
+    public StackState dupX1() {
+        if (contents.size() < 2) {
+            throw new InvalidBytecodeException("cannot dup_x1, stack does not have enough items");
+        }
+        StackEntry type = top();
+        if (type.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot dup_x1 wide type");
+        }
+        ArrayList<StackEntry> ret = new ArrayList<StackEntry>(1 + contents.size());
+        for (int i = 0; i < contents.size(); ++i) {
+            if (i == contents.size() - 2) {
+                ret.add(top());
+            }
+            ret.add(contents.get(i));
+        }
+        return new StackState(ret, constPool);
+    }
+
+    public StackState dupX2() {
+        if (contents.size() < 3) {
+            throw new InvalidBytecodeException("cannot dup_x1, stack does not have enough items");
+        }
+        StackEntry type = top();
+        if (type.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot dup_x1 wide type");
+        }
+        ArrayList<StackEntry> ret = new ArrayList<StackEntry>(1 + contents.size());
+        for (int i = 0; i < contents.size(); ++i) {
+            if (i == contents.size() - 3) {
+                ret.add(top());
+            }
+            ret.add(contents.get(i));
+        }
+        return new StackState(ret, constPool);
+    }
+
     public StackState dup2() {
         if (contents.size() <2) {
             throw new InvalidBytecodeException("cannot dup2, stack size is " + contents.size() + " " + toString());
@@ -196,8 +232,9 @@ public class StackState {
         if (t2.getType() == StackEntryType.TOP) {
             throw new InvalidBytecodeException("Cannot dup2 when second type on stack is wide: " + toString());
         }
-        return newStack(t1, t2);
+        return newStack(t2, t1);
     }
+
     private StackState newStack(StackEntry... pushValues) {
         ArrayList<StackEntry> ret = new ArrayList<StackEntry>(pushValues.length + contents.size());
         ret.addAll(contents);
