@@ -260,6 +260,23 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop3());
     }
 
+    public void caload() {
+        assertTypeOnStack(StackEntryType.INT, "caload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "caload requires an array in position 2 on the stack");
+        writeByte(Opcode.CALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
+    public void castore() {
+        assertTypeOnStack(StackEntryType.INT, "castore requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.INT, "castore requires an int in position 2 on the stack");
+        assertTypeOnStack(2, StackEntryType.OBJECT, "castore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.CASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop3());
+    }
+
     public void bipush(byte value) {
         writeByte(Opcode.BIPUSH);
         writeByte(value);
