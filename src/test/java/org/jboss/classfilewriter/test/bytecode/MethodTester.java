@@ -21,6 +21,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode;
 
+import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -93,6 +94,16 @@ public class MethodTester<T> {
         }
         if (createdMethod == null) {
             throw new RuntimeException("Created method not found on class");
+        }
+    }
+
+    public void dump() {
+        try {
+            FileOutputStream st = new FileOutputStream("/tmp/dump.class");
+            st.write(this.method.getClassFile().toBytecode());
+            st.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

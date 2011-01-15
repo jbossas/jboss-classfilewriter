@@ -58,7 +58,10 @@ public class ClassFile implements WritableEntry {
     private final List<String> interfaces = new ArrayList<String>();
 
     private final List<ClassField> fields = new ArrayList<ClassField>();
+
     private final List<ClassMethod> methods = new ArrayList<ClassMethod>();
+
+    private byte[] bytecode;
 
     public ClassFile(String name, String superclass, String... interfaces) {
         this.version = JavaVersions.JAVA_6;
@@ -190,14 +193,17 @@ public class ClassFile implements WritableEntry {
     }
 
     public byte[] toBytecode() {
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            DataOutputStream out = new DataOutputStream(bytes);
-            write(out);
-            return bytes.toByteArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (bytecode == null) {
+            try {
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                DataOutputStream out = new DataOutputStream(bytes);
+                write(out);
+                bytecode = bytes.toByteArray();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+        return bytecode;
     }
 
     public ConstPool getConstPool() {

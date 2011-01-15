@@ -98,8 +98,11 @@ public class StackEntry {
 
     @Override
     public String toString() {
-        return "StackEntry [descriptor=" + descriptor + ", newInstructionLocation=" + newInstructionLocation + ", type=" + type
+        if (type == StackEntryType.OBJECT) {
+        return "StackEntry [descriptor=" + descriptor + ", type=" + type
                 + "]";
+        }
+        return "StackEntry [type=" + type + "]";
     }
 
     public static StackEntry of(String descriptor, ConstPool pool) {

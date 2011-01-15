@@ -26,8 +26,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.InvalidBytecodeException;
@@ -55,11 +58,21 @@ public class CodeAttribute extends Attribute {
 
     private final LinkedHashMap<Integer, StackFrame> stackFrames = new LinkedHashMap<Integer, StackFrame>();
 
+    /**
+     * maps bytecode offsets to jump locations. As these jump locations where not known when the instruction was written they
+     * need to be overwritten when the final bytecode is written out
+     */
+    private final Map<Integer, Integer> jumpLocations = new HashMap<Integer, Integer>();
+
     private StackFrame currentFrame;
 
     private int currentOffset;
 
     private final List<Attribute> attributes = new ArrayList<Attribute>();
+
+    private boolean stackMapAttributeValid = true;
+
+    private final StackMapTableAttribute stackMapTableAttribute;
 
     public CodeAttribute(ClassMethod method, ConstPool constPool) {
         super(NAME, constPool);
@@ -82,14 +95,24 @@ public class CodeAttribute extends Attribute {
         currentFrame = new StackFrame(method);
         stackFrames.put(0, currentFrame);
         currentOffset = 0;
-        // add the stack map table
-        attributes.add(new StackMapTableAttribute(method, constPool));
+        stackMapTableAttribute = new StackMapTableAttribute(method, constPool);
     }
 
     @Override
     public void writeData(DataOutputStream stream) throws IOException {
+
+        if (stackMapAttributeValid) {
+            // add the stack map table
+            attributes.add(stackMapTableAttribute);
+        }
+
         if (finalDataBytes.size() == 0) {
             throw new RuntimeException("Code attribute is empty for method " + method.getName() + "  " + method.getDescriptor());
+        }
+
+        byte[] bytecode = finalDataBytes.toByteArray();
+        for (Entry<Integer, Integer> e : jumpLocations.entrySet()) {
+            overwriteShort(bytecode, e.getKey(), e.getValue());
         }
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
@@ -100,8 +123,8 @@ public class CodeAttribute extends Attribute {
         stream.writeInt(finalDataBytes.size() + 12 + bos.size()); // attribute length
         stream.writeShort(maxStackDepth);
         stream.writeShort(maxLocals);
-        stream.writeInt(finalDataBytes.size());
-        stream.write(finalDataBytes.toByteArray());
+        stream.writeInt(bytecode.length);
+        stream.write(bytecode);
         stream.writeShort(0); // exception table length
         stream.writeShort(attributes.size()); // attributes count
         stream.write(bos.toByteArray());
@@ -207,8 +230,16 @@ public class CodeAttribute extends Attribute {
     }
 
     /**
-     * Do not use Descriptor format (e.g. Ljava/lang/Object;)
-     *
+     * marks the end of a branch. The current stack frame is checked for compatibility with the stack frame at the branch start
+     */
+    public void branchEnd(BranchEnd end) {
+        mergeStackFrames(end.getStackFrame());
+        jumpLocations.put(end.getBranchLocation() + 1, currentOffset - end.getBranchLocation());
+    }
+
+    /**
+     * Do not use Descriptor format (e.g. Ljava/lang/Object;), the correct form is just java/lang/Object or java.lang.Object
+     * 
      */
     public void checkcast(String className) {
         int classIndex = constPool.addClassEntry(className);
@@ -275,6 +306,37 @@ public class CodeAttribute extends Attribute {
         currentOffset++;
         advanceFrame(currentFrame.push("I"));
     }
+
+    /**
+     * Jump to the given location if the reference type on the top of the stack is null
+     */
+    public void ifnull(CodeLocation location) {
+        StackEntry top = getStack().top();
+        if (top.getType() != StackEntryType.NULL && top.getType() != StackEntryType.OBJECT) {
+            throw new InvalidBytecodeException("ifnull requires reference type on top of the stack");
+        }
+
+        writeByte(Opcode.IFNULL);
+        writeShort(location.getLocation() - currentOffset);
+        mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
+    }
+
+    /**
+     * Jump to the given location if the reference type on the top of the stack is null.
+     * <p>
+     * The {@link BranchEnd} returned from this method is used to set the end point to a future point in the bytecode stream
+     */
+    public BranchEnd ifnull() {
+        writeByte(Opcode.IFNULL);
+        writeShort(0);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        return ret;
+    }
+
     /**
      * Adds an ldc instruction for an int.
      *
@@ -398,6 +460,15 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.push("Ljava/lang/Class;"));
     }
 
+    /**
+     * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
+     * instruction that is written to the bytecode stream
+     * 
+     */
+    public CodeLocation mark() {
+        return new CodeLocation(currentOffset, currentFrame);
+    }
+
     public void pop() {
         writeByte(Opcode.POP);
         currentOffset++;
@@ -451,6 +522,7 @@ public class CodeAttribute extends Attribute {
                     writeByte(Opcode.LRETURN);
             }
         }
+        currentFrame = null;
     }
 
 
@@ -468,6 +540,15 @@ public class CodeAttribute extends Attribute {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * overwrites a 16 bit value in the already written bytecode data
+     * 
+     */
+    public void overwriteShort(byte[] bytecode, int offset, int value) {
+        bytecode[offset] = (byte) (value >> 8);
+        bytecode[offset + 1] = (byte) (value);
     }
 
     public LinkedHashMap<Integer, StackFrame> getStackFrames() {
@@ -511,6 +592,71 @@ public class CodeAttribute extends Attribute {
     private void assertNotEmptyStack(String message) {
         if (getStack().size() == 0) {
             throw new InvalidBytecodeException(message);
+        }
+    }
+
+    /**
+     * Merge the stack frames.
+     * <p>
+     * If the frames are incompatible then an {@link InvalidBytecodeException} is thrown. If the frames cannot be properly
+     * merged then the stack map is marked as invalid
+     * 
+     */
+    private void mergeStackFrames(StackFrame stackFrame) {
+        if (currentFrame == null) {
+            currentFrame = stackFrame;
+            stackFrames.put(currentOffset, currentFrame);
+            return;
+        }
+        StackState currentStackState = getStack();
+        StackState mergeStackState = stackFrame.getStackState();
+        if (currentStackState.size() != mergeStackState.size()) {
+            throw new InvalidBytecodeException("Cannot merge stack frames, different stack sizes");
+        }
+        for (int i = 0; i < mergeStackState.size(); ++i) {
+            StackEntry currentEntry = currentStackState.getContents().get(i);
+            StackEntry mergeEntry = mergeStackState.getContents().get(i);
+            if (mergeEntry.getType() == currentEntry.getType()) {
+                if (mergeEntry.getType() == StackEntryType.OBJECT) {
+                    if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
+                        if (!mergeEntry.equals("Ljava/lang/Object;")) {
+                            // we cannot reliably determine if closes common superclass at this point
+                            // so we will just mark the stack map attribute as invalid
+                            stackMapAttributeValid = false;
+                        }
+                    }
+                }
+            } else if (!((mergeEntry.getType() == StackEntryType.NULL && currentEntry.getType() == StackEntryType.OBJECT) || (mergeEntry
+                    .getType() == StackEntryType.OBJECT && currentEntry.getType() == StackEntryType.NULL))) {
+                throw new InvalidBytecodeException("Cannot merge stack frame " + currentStackState + " with frame "
+                        + mergeStackState + " stack entry " + i + " is invalid");
+            }
+        }
+
+        LocalVariableState currentLocalVariableState = getLocalVars();
+        LocalVariableState mergeLocalVariableState = getLocalVars();
+        if (currentLocalVariableState.size() < mergeLocalVariableState.size()) {
+            throw new InvalidBytecodeException(
+                    "Cannot merge stack frames, merge location has less locals than current location");
+        }
+        for (int i = 0; i < mergeLocalVariableState.size(); ++i) {
+            StackEntry currentEntry = currentLocalVariableState.getContents().get(i);
+            StackEntry mergeEntry = mergeLocalVariableState.getContents().get(i);
+            if (mergeEntry.getType() == currentEntry.getType()) {
+                if (mergeEntry.getType() == StackEntryType.OBJECT) {
+                    if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
+                        if (!mergeEntry.equals("Ljava/lang/Object;")) {
+                            // we cannot reliably determine if closes common superclass at this point
+                            // so we will just mark the stack map attribute as invalid
+                            stackMapAttributeValid = false;
+                        }
+                    }
+                }
+            } else if (!((mergeEntry.getType() == StackEntryType.NULL && currentEntry.getType() == StackEntryType.OBJECT) || (mergeEntry
+                    .getType() == StackEntryType.OBJECT && currentEntry.getType() == StackEntryType.NULL))) {
+                throw new InvalidBytecodeException("Cannot merge stack frame " + currentLocalVariableState + " with frame "
+                        + currentLocalVariableState + " local variable entry " + i + " is invalid");
+            }
         }
     }
 
