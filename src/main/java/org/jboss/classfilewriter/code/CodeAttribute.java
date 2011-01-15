@@ -260,6 +260,13 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop3());
     }
 
+    public void bipush(byte value) {
+        writeByte(Opcode.BIPUSH);
+        writeByte(value);
+        currentOffset += 2;
+        advanceFrame(currentFrame.push("B"));
+    }
+
     /**
      * marks the end of a branch. The current stack frame is checked for compatibility with the stack frame at the branch start
      */
