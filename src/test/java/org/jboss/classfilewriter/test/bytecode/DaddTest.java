@@ -26,16 +26,17 @@ import junit.framework.Assert;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class D2fTest {
+public class DaddTest {
 
     @Test
-    public void d2fTest() {
-        MethodTester<Float> mt = new MethodTester<Float>(float.class);
+    public void daddTest() {
+        MethodTester<Double> mt = new MethodTester<Double>(double.class, double.class, double.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.ldc2((double) 0);
-        ca.d2f();
+        ca.dload(0);
+        ca.dload(2);
+        ca.dadd();
         ca.returnInstruction();
-        Assert.assertEquals(0.0f, mt.invoke());
+        Assert.assertEquals(2.0, (double) mt.invoke(1.0, 1.0));
     }
 
 

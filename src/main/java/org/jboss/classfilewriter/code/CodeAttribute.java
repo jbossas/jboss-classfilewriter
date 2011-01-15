@@ -312,6 +312,28 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2push1("F"));
     }
 
+    public void d2i() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "d2i requires double on stack");
+        writeByte(Opcode.D2I);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
+    public void d2l() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "d2l requires double on stack");
+        writeByte(Opcode.D2L);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("J"));
+    }
+
+    public void dadd() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dadd requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "dadd requires double on stack");
+        writeByte(Opcode.DADD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
     public void dload(int no) {
         LocalVariableState locals = getLocalVars();
         if (locals.size() <= no) {
