@@ -235,6 +235,26 @@ public class StackState {
         return newStack(t2, t1);
     }
 
+    public StackState dup2X1() {
+        if (contents.size() < 3) {
+            throw new InvalidBytecodeException("cannot dup2X1, stack size is " + contents.size() + " " + toString());
+        }
+        StackEntry t1 = top();
+        StackEntry t2 = top_1();
+        if (t2.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot dup2X1 when second type on stack is wide: " + toString());
+        }
+        ArrayList<StackEntry> ret = new ArrayList<StackEntry>(2 + contents.size());
+        for (int i = 0; i < contents.size(); ++i) {
+            if (i == contents.size() - 3) {
+                ret.add(t2);
+                ret.add(t1);
+            }
+            ret.add(contents.get(i));
+        }
+        return new StackState(ret, constPool);
+    }
+
     private StackState newStack(StackEntry... pushValues) {
         ArrayList<StackEntry> ret = new ArrayList<StackEntry>(pushValues.length + contents.size());
         ret.addAll(contents);

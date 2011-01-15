@@ -154,6 +154,11 @@ public class StackFrame {
         return new StackFrame(ns, localVariableState);
     }
 
+    public StackFrame dup2X1() {
+        StackState ns = stackState.dup2X1();
+        return new StackFrame(ns, localVariableState);
+    }
+
     /**
      * Store the variable on top of the stack into a local variable, poping the variable from the stack. Wide types are handled
      * automatically
@@ -185,7 +190,7 @@ public class StackFrame {
 
     /**
      * remote the top two operands and replace them with an different operand
-     * 
+     *
      */
     public StackFrame pop4push1(String type) {
         StackState ns = stackState.pop4().push(type);

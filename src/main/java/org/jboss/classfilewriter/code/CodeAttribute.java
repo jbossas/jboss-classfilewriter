@@ -371,7 +371,7 @@ public class CodeAttribute extends Attribute {
      * Adds the appropriate dconst instruction.
      * <p>
      * note, if the value is not 0 or 1 then ldc is used instead
-     * 
+     *
      */
     public void dconst(double value) {
         if (value == 0.0) {
@@ -498,6 +498,13 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.DUP2);
         currentOffset++;
         advanceFrame(currentFrame.dup2());
+    }
+
+    public void dup2X1() {
+        assertNotWideOnStack(2, "dup2_x1 cannot be used if double or long is in position 3 on the stack");
+        writeByte(Opcode.DUP2_X1);
+        currentOffset++;
+        advanceFrame(currentFrame.dup2X1());
     }
 
     /**
