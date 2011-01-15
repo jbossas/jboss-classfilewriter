@@ -134,6 +134,11 @@ public class StackFrame {
         return new StackFrame(ns, localVariableState);
     }
 
+    public StackFrame dup() {
+        StackState ns = stackState.dup();
+        return new StackFrame(ns, localVariableState);
+    }
+
     /**
      * Store the variable on top of the stack into a local variable, poping the variable from the stack. Wide types are handled
      * automatically

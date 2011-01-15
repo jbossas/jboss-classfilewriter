@@ -361,7 +361,7 @@ public class CodeAttribute extends Attribute {
 
     public void dcmpl() {
         assertTypeOnStack(StackEntryType.DOUBLE, "dcmpl requires double on stack");
-        assertTypeOnStack(2, StackEntryType.DOUBLE, "dcmpl requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "dcmpl requires double in position 3 on stack");
         writeByte(Opcode.DCMPL);
         currentOffset++;
         advanceFrame(currentFrame.pop4push1("I"));
@@ -384,6 +384,14 @@ public class CodeAttribute extends Attribute {
         }
         currentOffset++;
         advanceFrame(currentFrame.push("D"));
+    }
+
+    public void ddiv() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "ddiv requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "ddiv requires double in position 3 on stack");
+        writeByte(Opcode.DDIV);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
     }
 
     public void dload(int no) {
@@ -412,6 +420,63 @@ public class CodeAttribute extends Attribute {
             currentOffset += 2;
         }
         advanceFrame(currentFrame.push(entry));
+    }
+
+    public void dmul() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dmul requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "dmul requires double in position 3 on stack");
+        writeByte(Opcode.DMUL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void dneg() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dneg requires double on stack");
+        writeByte(Opcode.DNEG);
+        currentOffset++;
+        duplicateFrame();
+    }
+
+    public void drem() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "drem requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "drem requires double in position 3 on stack");
+        writeByte(Opcode.DREM);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void dstore(int no) {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dastore requires double on stack");
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.DSTORE);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.DSTORE_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.DSTORE);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.store(no));
+    }
+
+    public void dsub() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dsub requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "dsub requires double in position 3 on stack");
+        writeByte(Opcode.DSUB);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void dup() {
+        assertNotWideOnStack("dup acnnot be used if double or long is on top of the stack");
+        writeByte(Opcode.DUP);
+        currentOffset++;
+        advanceFrame(currentFrame.dup());
     }
 
     /**
@@ -801,6 +866,22 @@ public class CodeAttribute extends Attribute {
 
     public void assertTypeOnStack(StackEntryType type, String message) {
         assertTypeOnStack(0, type, message);
+    }
+
+    public void assertNotWideOnStack(int position, String message) {
+        if (getStack().size() <= position) {
+            throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
+        }
+        int index = getStack().getContents().size() - 1 - position;
+
+        StackEntryType stype = getStack().getContents().get(index).getType();
+        if (stype == StackEntryType.TOP) {
+            throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
+        }
+    }
+
+    public void assertNotWideOnStack(String message) {
+        assertNotWideOnStack(0, message);
     }
 
     /**
