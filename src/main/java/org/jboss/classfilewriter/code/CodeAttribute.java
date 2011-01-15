@@ -674,6 +674,57 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop());
     }
 
+    public void fneg() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fneg requires float on stack");
+        writeByte(Opcode.FNEG);
+        currentOffset++;
+        duplicateFrame();
+    }
+
+    public void frem() {
+        assertTypeOnStack(StackEntryType.FLOAT, "frem requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "frem requires float in position 2 on stack");
+        writeByte(Opcode.FREM);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void fstore(int no) {
+        assertTypeOnStack(StackEntryType.FLOAT, "fstore requires float on stack");
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.FSTORE);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.FSTORE_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.FSTORE);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.store(no));
+    }
+
+    public void fsub() {
+        assertTypeOnStack(StackEntryType.FLOAT, "fsub requires float on stack");
+        assertTypeOnStack(1, StackEntryType.FLOAT, "fsub requires float in position 2 on stack");
+        writeByte(Opcode.FSUB);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void getfield(String className, String field, String descriptor) {
+        assertTypeOnStack(StackEntryType.OBJECT, "getfield requires object on stack");
+        int index = constPool.addFieldEntry(className, field, descriptor);
+        writeByte(Opcode.GETFIELD);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.replace(descriptor));
+    }
+
     public void getstatic(String className, String field, String descriptor) {
         int index = constPool.addFieldEntry(className, field, descriptor);
         writeByte(Opcode.GETSTATIC);
