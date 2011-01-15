@@ -236,6 +236,13 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.store(no));
     }
 
+    public void athrow() {
+        assertTypeOnStack(StackEntryType.OBJECT, "athrow requires an object on the stack");
+        writeByte(Opcode.ATHROW);
+        currentOffset++;
+        currentFrame = null;
+    }
+
     /**
      * marks the end of a branch. The current stack frame is checked for compatibility with the stack frame at the branch start
      */
@@ -628,11 +635,11 @@ public class CodeAttribute extends Attribute {
 
     public void assertTypeOnStack(StackEntryType type, String message) {
         if (getStack().size() == 0) {
-            throw new InvalidBytecodeException(message);
+            throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
         }
         if (getStack().top().getType() != type) {
             if (!(type == StackEntryType.OBJECT && getStack().top().getType() == StackEntryType.NULL)) {
-                throw new InvalidBytecodeException(message);
+                throw new InvalidBytecodeException(message + " Stack State: " + getStack().toString());
             }
         }
     }

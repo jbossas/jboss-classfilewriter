@@ -31,7 +31,7 @@ public class ArraylengthTest {
     public static Integer[] VALUE = { 1, 2, 3 };
 
     @Test
-    public void testAaload() {
+    public void testArraylength() {
         MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
         CodeAttribute ca = mt.getCodeAttribute();
         ca.getstatic(getClass().getName(), "VALUE", "[Ljava/lang/Integer;");

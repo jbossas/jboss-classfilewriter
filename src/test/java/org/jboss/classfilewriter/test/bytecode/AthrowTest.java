@@ -26,19 +26,29 @@ import junit.framework.Assert;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class PutstaticTest {
+public class AthrowTest {
 
-    public static int VALUE = 2;
+    public static final Integer[] VALUE = { 2, 3, 4 };
 
     @Test
-    public void testPutStatic() {
-        MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
-        CodeAttribute ca = mt.getCodeAttribute();
-        ca.iconst(100);
-        ca.iconst(100);
-        ca.putstatic(getClass().getName(), "VALUE", "I");
-        ca.returnInstruction();
-        mt.invoke();
-        Assert.assertEquals(100, VALUE);
+    public void testAthrow() {
+        try {
+            MethodTester<Integer> mt = new MethodTester<Integer>(Integer.class, TestException.class);
+            CodeAttribute ca = mt.getCodeAttribute();
+            ca.aload(0);
+            ca.athrow();
+            mt.invoke(new TestException());
+            Assert.fail();
+        } catch (RuntimeException e) {
+            // runtime error wrapping IvocationTargetException wrapping TestException
+            if (e.getCause().getCause().getClass() != TestException.class) {
+                Assert.fail();
+            }
+        }
+
+    }
+
+    private static class TestException extends RuntimeException {
+
     }
 }

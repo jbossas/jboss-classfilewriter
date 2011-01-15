@@ -31,7 +31,7 @@ public class AloadTest {
     public static final Integer VALUE = 10;
 
     @Test
-    public void testAaload() {
+    public void testAload() {
         MethodTester<Integer> mt = new MethodTester<Integer>(Integer.class);
         CodeAttribute ca = mt.getCodeAttribute();
         ca.getstatic(getClass().getName(), "VALUE", "Ljava/lang/Integer;");

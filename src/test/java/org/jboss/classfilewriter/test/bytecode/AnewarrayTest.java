@@ -31,7 +31,7 @@ public class AnewarrayTest {
     public static Integer[] VALUE;
 
     @Test
-    public void testAaload() {
+    public void testAnewarray() {
         MethodTester<Void> mt = new MethodTester<Void>(Void.class);
         CodeAttribute ca = mt.getCodeAttribute();
         ca.iconst(10);
