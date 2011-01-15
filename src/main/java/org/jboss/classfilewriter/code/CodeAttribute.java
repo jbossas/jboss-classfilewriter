@@ -251,6 +251,15 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2push1("I"));
     }
 
+    public void bastore() {
+        assertTypeOnStack(StackEntryType.INT, "bastore requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.INT, "bastore requires an int in position 2 on the stack");
+        assertTypeOnStack(2, StackEntryType.OBJECT, "bastore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.BASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop3());
+    }
+
     /**
      * marks the end of a branch. The current stack frame is checked for compatibility with the stack frame at the branch start
      */
