@@ -118,6 +118,14 @@ public class StackFrame {
     }
 
     /**
+     * pops 4 operands from the stack
+     */
+    public StackFrame pop4() {
+        StackState ns = stackState.pop4();
+        return new StackFrame(ns, localVariableState);
+    }
+
+    /**
      * replace the operand at the top of the stack with the given operand
      */
     public StackFrame replace(String type) {
@@ -152,6 +160,15 @@ public class StackFrame {
      */
     public StackFrame pop2push1(String type) {
         StackState ns = stackState.pop2().push(type);
+        return new StackFrame(ns, localVariableState);
+    }
+
+    /**
+     * remote the top two operands and replace them with an different operand
+     * 
+     */
+    public StackFrame pop4push1(String type) {
+        StackState ns = stackState.pop4().push(type);
         return new StackFrame(ns, localVariableState);
     }
 

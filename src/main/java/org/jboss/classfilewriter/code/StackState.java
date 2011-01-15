@@ -154,10 +154,26 @@ public class StackState {
             throw new InvalidBytecodeException("cannot pop3, only " + contents.size() + " on stack " + toString());
         }
         StackEntry type = top_2();
-        if (type.isWide()) {
+        if (type.getType() == StackEntryType.TOP) {
             throw new InvalidBytecodeException("Cannot pop3 when third type on stack is wide " + toString());
         }
         return new StackState(contents.subList(0, contents.size() - 3), constPool);
+    }
+
+    /**
+     * removes four items from the top of the stack
+     * 
+     * @return
+     */
+    public StackState pop4() {
+        if (contents.size() < 4) {
+            throw new InvalidBytecodeException("cannot pop4, only " + contents.size() + " on stack " + toString());
+        }
+        StackEntry type = top_3();
+        if (type.getType() == StackEntryType.TOP) {
+            throw new InvalidBytecodeException("Cannot pop4 when fourth type on stack is wide " + toString());
+        }
+        return new StackState(contents.subList(0, contents.size() - 4), constPool);
     }
 
     public StackState dup() {

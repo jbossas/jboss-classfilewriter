@@ -26,21 +26,18 @@ import junit.framework.Assert;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class CastoreTest {
+public class DaloadTest {
 
-    public static final char[] VALUE = { 0, 0, 0 };
+    public static final double[] VALUE = { 2.0, 3.0, 4.0 };
 
     @Test
-    public void testCastore() {
-        MethodTester<Void> mt = new MethodTester<Void>(void.class);
+    public void testDaload() {
+        MethodTester<Double> mt = new MethodTester<Double>(double.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.getstatic(getClass().getName(), "VALUE", "[C");
+        ca.getstatic(getClass().getName(), "VALUE", "[D");
         ca.iconst(1);
-        ca.iconst(30);
-        ca.castore();
-
+        ca.daload();
         ca.returnInstruction();
-        mt.invoke();
-        Assert.assertEquals(30, VALUE[1]);
+        Assert.assertEquals(3.0, (double) mt.invoke());
     }
 }

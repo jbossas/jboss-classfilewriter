@@ -334,6 +334,58 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2());
     }
 
+    public void daload() {
+        assertTypeOnStack(StackEntryType.INT, "daload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "daload requires an array in position 2 on the stack");
+        writeByte(Opcode.DALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("D"));
+    }
+
+    public void dastore() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dastore requires an int on top of the stack");
+        assertTypeOnStack(2, StackEntryType.INT, "dastore requires an int in position 2 on the stack");
+        assertTypeOnStack(3, StackEntryType.OBJECT, "dastore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.DASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop4());
+    }
+
+    public void dcmpg() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dcmpg requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "dcmpg requires double on stack");
+        writeByte(Opcode.DCMPG);
+        currentOffset++;
+        advanceFrame(currentFrame.pop4push1("I"));
+    }
+
+    public void dcmpl() {
+        assertTypeOnStack(StackEntryType.DOUBLE, "dcmpl requires double on stack");
+        assertTypeOnStack(2, StackEntryType.DOUBLE, "dcmpl requires double on stack");
+        writeByte(Opcode.DCMPL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop4push1("I"));
+    }
+
+    /**
+     * Adds the appropriate dconst instruction.
+     * <p>
+     * note, if the value is not 0 or 1 then ldc is used instead
+     * 
+     */
+    public void dconst(double value) {
+        if (value == 0.0) {
+            writeByte(Opcode.DCONST_0);
+        } else if (value == 1.0) {
+            writeByte(Opcode.DCONST_1);
+        } else {
+            ldc2(value);
+            return;
+        }
+        currentOffset++;
+        advanceFrame(currentFrame.push("D"));
+    }
+
     public void dload(int no) {
         LocalVariableState locals = getLocalVars();
         if (locals.size() <= no) {
