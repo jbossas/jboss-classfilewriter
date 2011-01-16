@@ -93,11 +93,16 @@ public class StackFrame {
 
     }
 
+    public StackFrame pop(int no) {
+        StackState ns = stackState.pop(no);
+        return new StackFrame(ns, localVariableState);
+    }
+
     /**
      * pops an operand from the stack
      */
     public StackFrame pop() {
-        StackState ns = stackState.pop();
+        StackState ns = stackState.pop(1);
         return new StackFrame(ns, localVariableState);
     }
 
@@ -105,7 +110,7 @@ public class StackFrame {
      * pops 2 operands from the stack
      */
     public StackFrame pop2() {
-        StackState ns = stackState.pop2();
+        StackState ns = stackState.pop(2);
         return new StackFrame(ns, localVariableState);
     }
 
@@ -113,7 +118,7 @@ public class StackFrame {
      * pops 3 operands from the stack
      */
     public StackFrame pop3() {
-        StackState ns = stackState.pop3();
+        StackState ns = stackState.pop(3);
         return new StackFrame(ns, localVariableState);
     }
 
@@ -121,7 +126,7 @@ public class StackFrame {
      * pops 4 operands from the stack
      */
     public StackFrame pop4() {
-        StackState ns = stackState.pop4();
+        StackState ns = stackState.pop(4);
         return new StackFrame(ns, localVariableState);
     }
 
@@ -130,7 +135,7 @@ public class StackFrame {
      */
     public StackFrame replace(String type) {
         // TODO: inefficinet
-        StackState ns = stackState.pop().push(type);
+        StackState ns = stackState.pop(1).push(type);
         return new StackFrame(ns, localVariableState);
     }
 
@@ -174,11 +179,11 @@ public class StackFrame {
         LocalVariableState ls;
         if(top.getType() == StackEntryType.TOP) { //wide type
             StackEntry type = stackState.top_1();
-            ns = stackState.pop2();
+            ns = stackState.pop(2);
             ls = localVariableState.storeWide(no, type);
         } else {
             StackEntry type = stackState.top();
-            ns = stackState.pop();
+            ns = stackState.pop(1);
             ls = localVariableState.store(no, type);
         }
         return new StackFrame(ns,ls);
@@ -189,7 +194,7 @@ public class StackFrame {
      *
      */
     public StackFrame pop2push1(String type) {
-        StackState ns = stackState.pop2().push(type);
+        StackState ns = stackState.pop(2).push(type);
         return new StackFrame(ns, localVariableState);
     }
 
@@ -198,7 +203,7 @@ public class StackFrame {
      *
      */
     public StackFrame pop4push1(String type) {
-        StackState ns = stackState.pop4().push(type);
+        StackState ns = stackState.pop(4).push(type);
         return new StackFrame(ns, localVariableState);
     }
 

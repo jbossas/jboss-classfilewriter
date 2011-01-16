@@ -119,61 +119,15 @@ public class StackState {
     /**
      * pop a non-wide type from the top of the stack
      */
-    public StackState pop() {
-        if (contents.isEmpty()) {
-            throw new InvalidBytecodeException("Cannot pop from empty stack");
+    public StackState pop(int no) {
+        if (contents.size() < no) {
+            throw new InvalidBytecodeException("cannot pop" + no + ", only " + contents.size() + " on stack " + toString());
         }
-        StackEntry type = top();
+        StackEntry type = contents.get(contents.size() - no);
         if (type.getType() == StackEntryType.TOP) {
-            throw new InvalidBytecodeException("Cannot pop wide type");
+            throw new InvalidBytecodeException("Pop" + no + " would split wide type " + toString());
         }
-        return new StackState(contents.subList(0, contents.size() - 1), constPool);
-    }
-
-    /**
-     * pop a wide type from the top of the stack
-     */
-    public StackState pop2() {
-        if (contents.size() < 2) {
-            throw new InvalidBytecodeException("cannot pop2, only " + contents.size() + " on stack " + toString());
-        }
-        StackEntry type = top_1();
-        if (type.getType() == StackEntryType.TOP) {
-            throw new InvalidBytecodeException("Cannot pop2 when second type on stack is wide " + toString());
-        }
-        return new StackState(contents.subList(0, contents.size() - 2), constPool);
-    }
-
-    /**
-     * removes three items from the top of the stack
-     * 
-     * @return
-     */
-    public StackState pop3() {
-        if (contents.size() < 3) {
-            throw new InvalidBytecodeException("cannot pop3, only " + contents.size() + " on stack " + toString());
-        }
-        StackEntry type = top_2();
-        if (type.getType() == StackEntryType.TOP) {
-            throw new InvalidBytecodeException("Cannot pop3 when third type on stack is wide " + toString());
-        }
-        return new StackState(contents.subList(0, contents.size() - 3), constPool);
-    }
-
-    /**
-     * removes four items from the top of the stack
-     * 
-     * @return
-     */
-    public StackState pop4() {
-        if (contents.size() < 4) {
-            throw new InvalidBytecodeException("cannot pop4, only " + contents.size() + " on stack " + toString());
-        }
-        StackEntry type = top_3();
-        if (type.getType() == StackEntryType.TOP) {
-            throw new InvalidBytecodeException("Cannot pop4 when fourth type on stack is wide " + toString());
-        }
-        return new StackState(contents.subList(0, contents.size() - 4), constPool);
+        return new StackState(contents.subList(0, contents.size() - no), constPool);
     }
 
     public StackState dup() {
