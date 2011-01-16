@@ -39,7 +39,6 @@ import org.jboss.classfilewriter.attributes.StackMapTableAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
-
 public class CodeAttribute extends Attribute {
 
     public static final String NAME = "Code";
@@ -172,20 +171,21 @@ public class CodeAttribute extends Attribute {
 
     public void aload(int no) {
         LocalVariableState locals = getLocalVars();
-        if(locals.size()<= no) {
+        if (locals.size() <= no) {
             throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
         }
         StackEntry entry = locals.get(no);
         if (entry.getType() != StackEntryType.OBJECT && entry.getType() != StackEntryType.NULL) {
-            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables " + locals.toString());
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
+                    + locals.toString());
         }
 
-        if(no > 0xFF) {
-            //wide version
+        if (no > 0xFF) {
+            // wide version
             writeByte(Opcode.WIDE);
             writeByte(Opcode.ALOAD);
             writeShort(no);
-            currentOffset+=4;
+            currentOffset += 4;
         } else if (no >= 0 && no < 4) {
             writeByte(Opcode.ALOAD_0 + no);
             currentOffset++;
@@ -608,7 +608,6 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2push1("I"));
     }
 
-
     /**
      * Adds the appropriate fconst instruction.
      * <p>
@@ -931,51 +930,99 @@ public class CodeAttribute extends Attribute {
     }
 
     public void ifIcmpeq(CodeLocation location) {
-        addIcmp(location, Opcode.IF_ICMPEQ, "ifIcmpeq");
+        addIfIcmp(location, Opcode.IF_ICMPEQ, "ifIcmpeq");
     }
 
     public BranchEnd ifIcmpeq() {
-        return addIcmp(Opcode.IF_ICMPEQ, "ifIcmpeq");
+        return addIfIcmp(Opcode.IF_ICMPEQ, "ifIcmpeq");
     }
 
     public void ifIcmpne(CodeLocation location) {
-        addIcmp(location, Opcode.IF_ICMPNE, "ifIcmpne");
+        addIfIcmp(location, Opcode.IF_ICMPNE, "ifIcmpne");
     }
 
     public BranchEnd ifIcmpne() {
-        return addIcmp(Opcode.IF_ICMPNE, "ifIcmpne");
+        return addIfIcmp(Opcode.IF_ICMPNE, "ifIcmpne");
     }
 
     public void ifIcmplt(CodeLocation location) {
-        addIcmp(location, Opcode.IF_ICMPLT, "ifIcmplt");
+        addIfIcmp(location, Opcode.IF_ICMPLT, "ifIcmplt");
     }
 
     public BranchEnd ifIcmplt() {
-        return addIcmp(Opcode.IF_ICMPLT, "ifIcmplt");
+        return addIfIcmp(Opcode.IF_ICMPLT, "ifIcmplt");
     }
 
     public void ifIcmple(CodeLocation location) {
-        addIcmp(location, Opcode.IF_ICMPLE, "ifIcmple");
+        addIfIcmp(location, Opcode.IF_ICMPLE, "ifIcmple");
     }
 
     public BranchEnd ifIcmple() {
-        return addIcmp(Opcode.IF_ICMPLE, "ifIcmple");
+        return addIfIcmp(Opcode.IF_ICMPLE, "ifIcmple");
     }
 
     public void ifIcmpgt(CodeLocation location) {
-        addIcmp(location, Opcode.IF_ICMPGT, "ifIcmpgt");
+        addIfIcmp(location, Opcode.IF_ICMPGT, "ifIcmpgt");
     }
 
     public BranchEnd ifIcmpgt() {
-        return addIcmp(Opcode.IF_ICMPGT, "ifIcmpgt");
+        return addIfIcmp(Opcode.IF_ICMPGT, "ifIcmpgt");
     }
 
     public void ifIcmpge(CodeLocation location) {
-        addIcmp(location, Opcode.IF_ICMPGE, "ifIcmpge");
+        addIfIcmp(location, Opcode.IF_ICMPGE, "ifIcmpge");
     }
 
     public BranchEnd ifIcmpge() {
-        return addIcmp(Opcode.IF_ICMPGE, "ifIcmpge");
+        return addIfIcmp(Opcode.IF_ICMPGE, "ifIcmpge");
+    }
+
+    public void ifEq(CodeLocation location) {
+        addIf(location, Opcode.IFEQ, "ifeq");
+    }
+
+    public BranchEnd ifeq() {
+        return addIf(Opcode.IFEQ, "ifeq");
+    }
+
+    public void ifne(CodeLocation location) {
+        addIf(location, Opcode.IFNE, "ifne");
+    }
+
+    public BranchEnd ifne() {
+        return addIf(Opcode.IFNE, "ifne");
+    }
+
+    public void iflt(CodeLocation location) {
+        addIf(location, Opcode.IFLT, "iflt");
+    }
+
+    public BranchEnd iflt() {
+        return addIf(Opcode.IFLT, "iflt");
+    }
+
+    public void ifle(CodeLocation location) {
+        addIf(location, Opcode.IFLE, "ifle");
+    }
+
+    public BranchEnd ifle() {
+        return addIf(Opcode.IFLE, "ifle");
+    }
+
+    public void ifgt(CodeLocation location) {
+        addIf(location, Opcode.IFGT, "ifgt");
+    }
+
+    public BranchEnd ifgt() {
+        return addIf(Opcode.IFGT, "ifgt");
+    }
+
+    public void ifge(CodeLocation location) {
+        addIf(location, Opcode.IFGE, "ifge");
+    }
+
+    public BranchEnd ifge() {
+        return addIf(Opcode.IFGE, "ifge");
     }
 
     /**
@@ -1205,7 +1252,6 @@ public class CodeAttribute extends Attribute {
         currentFrame = null;
     }
 
-
     private void writeByte(int n) {
         try {
             data.writeByte(n);
@@ -1250,7 +1296,6 @@ public class CodeAttribute extends Attribute {
         currentFrame = frame;
         updateMaxValues();
     }
-
 
     private void updateMaxValues() {
         if (getStack().getContents().size() > maxStackDepth) {
@@ -1370,7 +1415,7 @@ public class CodeAttribute extends Attribute {
         }
     }
 
-    private void addIcmp(CodeLocation location, int opcode, String name) {
+    private void addIfIcmp(CodeLocation location, int opcode, String name) {
         assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
         assertTypeOnStack(1, StackEntryType.INT, name + " requires reference type in position 2 on stack");
         writeByte(opcode);
@@ -1380,13 +1425,32 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2());
     }
 
-    private BranchEnd addIcmp(int opcode, String name) {
+    private BranchEnd addIfIcmp(int opcode, String name) {
         assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
         assertTypeOnStack(1, StackEntryType.INT, name + " requires reference type int position 2 on stack");
         writeByte(opcode);
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        return ret;
+    }
+
+    private void addIf(CodeLocation location, int opcode, String name) {
+        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
+        writeByte(opcode);
+        writeShort(location.getLocation() - currentOffset);
+        mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
+    }
+
+    private BranchEnd addIf(int opcode, String name) {
+        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
+        writeByte(opcode);
+        writeShort(0);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
         BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
         return ret;
     }
