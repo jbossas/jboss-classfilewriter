@@ -1093,6 +1093,315 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.replace("I"));
     }
 
+    public void invokeInterface(String className, String methodName, String descriptor) {
+
+    }
+
+    private void invokeInterface(String className, String methodName, String descriptor, String returnType, int argumentCount) {
+        int methodIndex = constPool.addInterfaceMethodEntry(className, methodName, descriptor);
+
+    }
+
+    public void ior() {
+        assertTypeOnStack(StackEntryType.INT, "ior requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "ior requires int on stack");
+        writeByte(Opcode.IOR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void irem() {
+        assertTypeOnStack(StackEntryType.INT, "irem requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "irem requires int on stack");
+        writeByte(Opcode.IREM);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void ishl() {
+        assertTypeOnStack(StackEntryType.INT, "ishl requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "ishl requires int on stack");
+        writeByte(Opcode.ISHL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void ishr() {
+        assertTypeOnStack(StackEntryType.INT, "ishr requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "ishr requires int on stack");
+        writeByte(Opcode.ISHR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void istore(int no) {
+        assertTypeOnStack(StackEntryType.INT, "istore requires int on stack");
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.ISTORE);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.ISTORE_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.ISTORE);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.store(no));
+    }
+
+    public void isub() {
+        assertTypeOnStack(StackEntryType.INT, "isub requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "isub requires int on stack");
+        writeByte(Opcode.ISUB);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void iushr() {
+        assertTypeOnStack(StackEntryType.INT, "iushr requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "iushr requires int on stack");
+        writeByte(Opcode.IUSHR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void ixor() {
+        assertTypeOnStack(StackEntryType.INT, "ixor requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "ixor requires int on stack");
+        writeByte(Opcode.IXOR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void l2d() {
+        assertTypeOnStack(StackEntryType.LONG, "l2d requires long on stack");
+        writeByte(Opcode.L2D);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("D"));
+    }
+
+    public void l2f() {
+        assertTypeOnStack(StackEntryType.LONG, "l2f requires long on stack");
+        writeByte(Opcode.L2F);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("F"));
+    }
+
+    public void l2i() {
+        assertTypeOnStack(StackEntryType.LONG, "l2i requires long on stack");
+        writeByte(Opcode.L2I);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
+    public void ladd() {
+        assertTypeOnStack(StackEntryType.LONG, "ladd requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "ladd requires long on stack");
+        writeByte(Opcode.LADD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void laload() {
+        assertTypeOnStack(StackEntryType.INT, "laload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "laload requires an array in position 2 on the stack");
+        writeByte(Opcode.LALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("J"));
+    }
+
+    public void land() {
+        assertTypeOnStack(StackEntryType.LONG, "land requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "land requires long on stack");
+        writeByte(Opcode.LAND);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void lastore() {
+        assertTypeOnStack(StackEntryType.LONG, "lastore requires an long on top of the stack");
+        assertTypeOnStack(2, StackEntryType.INT, "lastore requires an int in position 2 on the stack");
+        assertTypeOnStack(3, StackEntryType.OBJECT, "lastore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.LASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop4());
+    }
+
+    public void lcmp() {
+        assertTypeOnStack(StackEntryType.LONG, "lcmp requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "lcmp requires long on stack");
+        writeByte(Opcode.LCMP);
+        currentOffset++;
+        advanceFrame(currentFrame.pop4push1("I"));
+    }
+
+    /**
+     * Adds the appropriate lconst instruction.
+     * <p>
+     * note, if the value is not 0 or 1 then ldc is used instead
+     * 
+     */
+    public void lconst(long value) {
+        if (value == 0) {
+            writeByte(Opcode.LCONST_0);
+        } else if (value == 1) {
+            writeByte(Opcode.LCONST_1);
+        } else {
+            ldc2(value);
+            return;
+        }
+        currentOffset++;
+        advanceFrame(currentFrame.push("J"));
+    }
+
+    public void ldiv() {
+        assertTypeOnStack(StackEntryType.LONG, "ldiv requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "ldiv requires long in position 3 on stack");
+        writeByte(Opcode.LDIV);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void lload(int no) {
+        LocalVariableState locals = getLocalVars();
+        if (locals.size() <= no) {
+            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
+        }
+        StackEntry entry = locals.get(no);
+        if (entry.getType() != StackEntryType.LONG) {
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
+                    + locals.toString());
+        }
+
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.LLOAD);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.LLOAD_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.LLOAD);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.push(entry));
+    }
+
+    public void lmul() {
+        assertTypeOnStack(StackEntryType.LONG, "lmul requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "lmul requires long in position 3 on stack");
+        writeByte(Opcode.LMUL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void lneg() {
+        assertTypeOnStack(StackEntryType.LONG, "lneg requires long on stack");
+        writeByte(Opcode.LNEG);
+        currentOffset++;
+        duplicateFrame();
+    }
+
+    public void lookupswitch() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void lor() {
+        assertTypeOnStack(StackEntryType.LONG, "lor requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "lor requires long in position 3 on stack");
+        writeByte(Opcode.LOR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void lrem() {
+        assertTypeOnStack(StackEntryType.LONG, "lrem requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "lrem requires long in position 3 on stack");
+        writeByte(Opcode.LREM);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void lshl() {
+        assertTypeOnStack(StackEntryType.INT, "lshl requires int on stack");
+        assertTypeOnStack(1, StackEntryType.LONG, "lshl requires long in position 2 on stack");
+        writeByte(Opcode.LSHL);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void lshr() {
+        assertTypeOnStack(StackEntryType.INT, "lshr requires int on stack");
+        assertTypeOnStack(1, StackEntryType.LONG, "lshr requires long in position 2 on stack");
+        writeByte(Opcode.LSHR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void lstore(int no) {
+        assertTypeOnStack(StackEntryType.LONG, "lstore requires long on stack");
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.LSTORE);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.LSTORE_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.LSTORE);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.store(no));
+    }
+
+    public void lsub() {
+        assertTypeOnStack(StackEntryType.LONG, "lsub requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "lsub requires long in position 3 on stack");
+        writeByte(Opcode.LSUB);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void lushr() {
+        assertTypeOnStack(StackEntryType.INT, "lushr requires int on stack");
+        assertTypeOnStack(1, StackEntryType.LONG, "lushr requires long in position 2 on stack");
+        writeByte(Opcode.LUSHR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void lxor() {
+        assertTypeOnStack(StackEntryType.LONG, "lxor requires long on stack");
+        assertTypeOnStack(2, StackEntryType.LONG, "lxor requires long in position 3 on stack");
+        writeByte(Opcode.LXOR);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void monitorenter() {
+        assertTypeOnStack(StackEntryType.OBJECT, "monitorenter requires object reference on stack");
+        writeByte(Opcode.MONITORENTER);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void monitorexit() {
+        assertTypeOnStack(StackEntryType.OBJECT, "monitorexit requires object reference on stack");
+        writeByte(Opcode.MONITOREXIT);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
     public void putstatic(String className, String field, String descriptor) {
         if (!getStack().isOnTop(descriptor)) {
             throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
