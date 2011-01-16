@@ -26,15 +26,17 @@ import junit.framework.Assert;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class I2sTest {
+public class IandTest {
 
     @Test
-    public void i2sTest() {
-        MethodTester<Short> mt = new MethodTester<Short>(short.class);
+    public void faddTest() {
+        MethodTester<Integer> mt = new MethodTester<Integer>(int.class, int.class, int.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.ldc(3);
-        ca.i2s();
+        ca.iload(0);
+        ca.iload(1);
+        ca.iand();
         ca.returnInstruction();
-        Assert.assertEquals((short) 3, (short) mt.invoke());
+        Assert.assertEquals(0, (int) mt.invoke(0, 1));
     }
+
 }

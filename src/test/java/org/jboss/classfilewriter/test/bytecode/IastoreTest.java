@@ -26,15 +26,21 @@ import junit.framework.Assert;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class I2sTest {
+public class IastoreTest {
+
+    public static final int[] VALUE = { 0, 0, 0 };
 
     @Test
-    public void i2sTest() {
-        MethodTester<Short> mt = new MethodTester<Short>(short.class);
+    public void testFastore() {
+        MethodTester<Void> mt = new MethodTester<Void>(void.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.ldc(3);
-        ca.i2s();
+        ca.getstatic(getClass().getName(), "VALUE", "[I");
+        ca.iconst(1);
+        ca.ldc(1);
+        ca.iastore();
+
         ca.returnInstruction();
-        Assert.assertEquals((short) 3, (short) mt.invoke());
+        mt.invoke();
+        Assert.assertEquals(1, VALUE[1]);
     }
 }

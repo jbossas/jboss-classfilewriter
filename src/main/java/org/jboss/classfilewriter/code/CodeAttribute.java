@@ -526,7 +526,7 @@ public class CodeAttribute extends Attribute {
     /**
      * Mark the end of an exception handler block. The last instruction that was written will be the last instruction covered by
      * the handler
-     * 
+     *
      */
     public void exceptionHandlerEnd(ExceptionHandler handler) {
         handler.setEnd(currentOffset);
@@ -746,6 +746,20 @@ public class CodeAttribute extends Attribute {
         currentFrame = null;
     }
 
+    /**
+     * writes a goto instruction.
+     * <p>
+     * TODO: implemented goto_w
+     */
+    public BranchEnd gotoInstruction() {
+        writeByte(Opcode.GOTO);
+        writeShort(0);
+        currentOffset += 3;
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        currentFrame = null;
+        return ret;
+    }
+
     public void i2b() {
         assertTypeOnStack(StackEntryType.INT, "i2b requires int on stack");
         writeByte(Opcode.I2B);
@@ -788,30 +802,37 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.replace("S"));
     }
 
-    /**
-     * writes a goto instruction.
-     * <p>
-     * TODO: implemented goto_w
-     */
-    public BranchEnd gotoInstruction() {
-        writeByte(Opcode.GOTO);
-        writeShort(0);
-        currentOffset += 3;
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
-        currentFrame = null;
-        return ret;
+    public void iadd() {
+        assertTypeOnStack(StackEntryType.INT, "iadd requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "iadd requires int on stack");
+        writeByte(Opcode.IADD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
     }
 
-    public void putstatic(String className, String field, String descriptor) {
-        if (!getStack().isOnTop(descriptor)) {
-            throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
-                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
-        }
-        int index = constPool.addFieldEntry(className, field, descriptor);
-        writeByte(Opcode.PUTSTATIC);
-        writeShort(index);
-        currentOffset += 3;
+    public void iaload() {
+        assertTypeOnStack(StackEntryType.INT, "iaload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "iaload requires an array in position 2 on the stack");
+        writeByte(Opcode.IALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
+    public void iand() {
+        assertTypeOnStack(StackEntryType.INT, "iand requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "iand requires int on stack");
+        writeByte(Opcode.IAND);
+        currentOffset++;
         advanceFrame(currentFrame.pop());
+    }
+
+    public void iastore() {
+        assertTypeOnStack(StackEntryType.INT, "iastore requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.INT, "iastore requires an int in position 2 on the stack");
+        assertTypeOnStack(2, StackEntryType.OBJECT, "iastore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.IASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop3());
     }
 
     /**
@@ -831,6 +852,42 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.push("I"));
     }
 
+    public void idiv() {
+        assertTypeOnStack(StackEntryType.INT, "idiv requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "idiv requires int in position 2 on stack");
+        writeByte(Opcode.IDIV);
+        currentOffset++;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void iload(int no) {
+        LocalVariableState locals = getLocalVars();
+        if (locals.size() <= no) {
+            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
+        }
+        StackEntry entry = locals.get(no);
+        if (entry.getType() != StackEntryType.INT) {
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
+                    + locals.toString());
+        }
+
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.ILOAD);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.ILOAD_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.ILOAD);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.push(entry));
+    }
+
     /**
      * Jump to the given location if the reference type on the top of the stack is null
      */
@@ -839,6 +896,18 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.IFNULL);
         writeShort(location.getLocation() - currentOffset);
         mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
+    }
+
+    public void putstatic(String className, String field, String descriptor) {
+        if (!getStack().isOnTop(descriptor)) {
+            throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
+                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
+        }
+        int index = constPool.addFieldEntry(className, field, descriptor);
+        writeByte(Opcode.PUTSTATIC);
+        writeShort(index);
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
     }
