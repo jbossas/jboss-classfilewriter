@@ -746,6 +746,48 @@ public class CodeAttribute extends Attribute {
         currentFrame = null;
     }
 
+    public void i2b() {
+        assertTypeOnStack(StackEntryType.INT, "i2b requires int on stack");
+        writeByte(Opcode.I2B);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("B"));
+    }
+
+    public void i2c() {
+        assertTypeOnStack(StackEntryType.INT, "i2c requires int on stack");
+        writeByte(Opcode.I2C);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("C"));
+    }
+
+    public void i2d() {
+        assertTypeOnStack(StackEntryType.INT, "i2d requires int on stack");
+        writeByte(Opcode.I2D);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("D"));
+    }
+
+    public void i2f() {
+        assertTypeOnStack(StackEntryType.INT, "i2f requires int on stack");
+        writeByte(Opcode.I2F);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("F"));
+    }
+
+    public void i2l() {
+        assertTypeOnStack(StackEntryType.INT, "i2l requires int on stack");
+        writeByte(Opcode.I2L);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("J"));
+    }
+
+    public void i2s() {
+        assertTypeOnStack(StackEntryType.INT, "i2s requires int on stack");
+        writeByte(Opcode.I2S);
+        currentOffset++;
+        advanceFrame(currentFrame.replace("S"));
+    }
+
     /**
      * writes a goto instruction.
      * <p>
