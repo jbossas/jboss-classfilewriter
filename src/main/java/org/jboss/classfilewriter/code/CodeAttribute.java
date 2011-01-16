@@ -888,6 +888,48 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.push(entry));
     }
 
+    public void ifAcmpeq(CodeLocation location) {
+        assertTypeOnStack(StackEntryType.OBJECT, "ifAcmpeq requires reference type on stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "ifAcmpeq requires reference type in position 2 on stack");
+        writeByte(Opcode.IF_ACMPEQ);
+        writeShort(location.getLocation() - currentOffset);
+        mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public BranchEnd ifAcmpeq() {
+        assertTypeOnStack(StackEntryType.OBJECT, "ifAcmpeq requires reference type on stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "ifAcmpeq requires reference type int position 2 on stack");
+        writeByte(Opcode.IF_ACMPEQ);
+        writeShort(0);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        return ret;
+    }
+
+    public void ifAcmpne(CodeLocation location) {
+        assertTypeOnStack(StackEntryType.OBJECT, "ifAcmpne requires reference type on stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "ifAcmpne requires reference type in position 2 on stack");
+        writeByte(Opcode.IF_ACMPNE);
+        writeShort(location.getLocation() - currentOffset);
+        mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public BranchEnd ifAcmpne() {
+        assertTypeOnStack(StackEntryType.OBJECT, "ifAcmpne requires reference type on stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "ifAcmpne requires reference type int position 2 on stack");
+        writeByte(Opcode.IF_ACMPNE);
+        writeShort(0);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        return ret;
+    }
+
     /**
      * Jump to the given location if the reference type on the top of the stack is null
      */
@@ -896,18 +938,6 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.IFNULL);
         writeShort(location.getLocation() - currentOffset);
         mergeStackFrames(location.getStackFrame());
-        currentOffset += 3;
-        advanceFrame(currentFrame.pop());
-    }
-
-    public void putstatic(String className, String field, String descriptor) {
-        if (!getStack().isOnTop(descriptor)) {
-            throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
-                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
-        }
-        int index = constPool.addFieldEntry(className, field, descriptor);
-        writeByte(Opcode.PUTSTATIC);
-        writeShort(index);
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
     }
@@ -925,6 +955,18 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop());
         BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
         return ret;
+    }
+
+    public void putstatic(String className, String field, String descriptor) {
+        if (!getStack().isOnTop(descriptor)) {
+            throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
+                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
+        }
+        int index = constPool.addFieldEntry(className, field, descriptor);
+        writeByte(Opcode.PUTSTATIC);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
     }
 
     /**
