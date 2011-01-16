@@ -29,7 +29,7 @@ import org.junit.Test;
 public class IdivTest {
 
     @Test
-    public void fdivTest() {
+    public void idivTest() {
         MethodTester<Integer> mt = new MethodTester<Integer>(int.class, int.class, int.class);
         CodeAttribute ca = mt.getCodeAttribute();
         ca.iload(0);

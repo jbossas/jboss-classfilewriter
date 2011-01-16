@@ -859,34 +859,6 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop());
     }
 
-    public void iload(int no) {
-        LocalVariableState locals = getLocalVars();
-        if (locals.size() <= no) {
-            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
-        }
-        StackEntry entry = locals.get(no);
-        if (entry.getType() != StackEntryType.INT) {
-            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
-                    + locals.toString());
-        }
-
-        if (no > 0xFF) {
-            // wide version
-            writeByte(Opcode.WIDE);
-            writeByte(Opcode.ILOAD);
-            writeShort(no);
-            currentOffset += 4;
-        } else if (no >= 0 && no < 4) {
-            writeByte(Opcode.ILOAD_0 + no);
-            currentOffset++;
-        } else {
-            writeByte(Opcode.ILOAD);
-            writeByte(no);
-            currentOffset += 2;
-        }
-        advanceFrame(currentFrame.push(entry));
-    }
-
     public void ifAcmpeq(CodeLocation location) {
         assertTypeOnStack(StackEntryType.OBJECT, "ifAcmpeq requires reference type on stack");
         assertTypeOnStack(1, StackEntryType.OBJECT, "ifAcmpeq requires reference type in position 2 on stack");
@@ -1025,16 +997,19 @@ public class CodeAttribute extends Attribute {
         return addIf(Opcode.IFGE, "ifge");
     }
 
+    public void ifnotnull(CodeLocation location) {
+        addNullComparison(location, Opcode.IFNONNULL, "ifnotnull");
+    }
+
+    public BranchEnd ifnotnull() {
+        return addNullComparison(Opcode.IFNONNULL, "ifnotnull");
+    }
+
     /**
      * Jump to the given location if the reference type on the top of the stack is null
      */
     public void ifnull(CodeLocation location) {
-        assertTypeOnStack(StackEntryType.OBJECT, "ifnull requires reference type on stack");
-        writeByte(Opcode.IFNULL);
-        writeShort(location.getLocation() - currentOffset);
-        mergeStackFrames(location.getStackFrame());
-        currentOffset += 3;
-        advanceFrame(currentFrame.pop());
+        addNullComparison(location, Opcode.IFNULL, "ifnull");
     }
 
     /**
@@ -1043,13 +1018,79 @@ public class CodeAttribute extends Attribute {
      * The {@link BranchEnd} returned from this method is used to set the end point to a future point in the bytecode stream
      */
     public BranchEnd ifnull() {
-        assertTypeOnStack(StackEntryType.OBJECT, "ifnull requires reference type on stack");
-        writeByte(Opcode.IFNULL);
-        writeShort(0);
-        currentOffset += 3;
+        return addNullComparison(Opcode.IFNULL, "ifnull");
+    }
+
+    public void iinc(int local, int amount) {
+        if (getLocalVars().get(local).getType() != StackEntryType.INT) {
+            throw new InvalidBytecodeException("iinc requires int at local variable position " + local + " "
+                    + getLocalVars().toString());
+        }
+        if (local > 0xFF || amount > 0xFF) {
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.IINC);
+            writeShort(local);
+            writeShort(amount);
+            currentOffset += 6;
+        } else {
+            writeByte(Opcode.IINC);
+            writeByte(local);
+            writeByte(amount);
+            currentOffset += 3;
+        }
+        duplicateFrame();
+    }
+
+    public void iload(int no) {
+        LocalVariableState locals = getLocalVars();
+        if (locals.size() <= no) {
+            throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
+        }
+        StackEntry entry = locals.get(no);
+        if (entry.getType() != StackEntryType.INT) {
+            throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
+                    + locals.toString());
+        }
+
+        if (no > 0xFF) {
+            // wide version
+            writeByte(Opcode.WIDE);
+            writeByte(Opcode.ILOAD);
+            writeShort(no);
+            currentOffset += 4;
+        } else if (no >= 0 && no < 4) {
+            writeByte(Opcode.ILOAD_0 + no);
+            currentOffset++;
+        } else {
+            writeByte(Opcode.ILOAD);
+            writeByte(no);
+            currentOffset += 2;
+        }
+        advanceFrame(currentFrame.push(entry));
+    }
+
+    public void imul() {
+        assertTypeOnStack(StackEntryType.INT, "imul requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, "imul requires int in position 2 on stack");
+        writeByte(Opcode.IMUL);
+        currentOffset++;
         advanceFrame(currentFrame.pop());
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
-        return ret;
+    }
+
+    public void ineg() {
+        assertTypeOnStack(StackEntryType.INT, "ineg requires int on stack");
+        writeByte(Opcode.INEG);
+        currentOffset++;
+        duplicateFrame();
+    }
+
+    public void instanceofInstruction(String className) {
+        assertTypeOnStack(StackEntryType.OBJECT, "instanceof requires an object reference on the stack");
+        int classIndex = constPool.addClassEntry(className);
+        writeByte(Opcode.INSTANCEOF);
+        writeShort(classIndex);
+        currentOffset += 3;
+        advanceFrame(currentFrame.replace("I"));
     }
 
     public void putstatic(String className, String field, String descriptor) {
@@ -1416,8 +1457,8 @@ public class CodeAttribute extends Attribute {
     }
 
     private void addIfIcmp(CodeLocation location, int opcode, String name) {
-        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
-        assertTypeOnStack(1, StackEntryType.INT, name + " requires reference type in position 2 on stack");
+        assertTypeOnStack(StackEntryType.INT, name + " requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, name + " requires int in position 2 on stack");
         writeByte(opcode);
         writeShort(location.getLocation() - currentOffset);
         mergeStackFrames(location.getStackFrame());
@@ -1426,8 +1467,8 @@ public class CodeAttribute extends Attribute {
     }
 
     private BranchEnd addIfIcmp(int opcode, String name) {
-        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
-        assertTypeOnStack(1, StackEntryType.INT, name + " requires reference type int position 2 on stack");
+        assertTypeOnStack(StackEntryType.INT, name + " requires int on stack");
+        assertTypeOnStack(1, StackEntryType.INT, name + " requires int int position 2 on stack");
         writeByte(opcode);
         writeShort(0);
         currentOffset += 3;
@@ -1437,7 +1478,7 @@ public class CodeAttribute extends Attribute {
     }
 
     private void addIf(CodeLocation location, int opcode, String name) {
-        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
+        assertTypeOnStack(StackEntryType.INT, name + " requires int on stack");
         writeByte(opcode);
         writeShort(location.getLocation() - currentOffset);
         mergeStackFrames(location.getStackFrame());
@@ -1446,7 +1487,26 @@ public class CodeAttribute extends Attribute {
     }
 
     private BranchEnd addIf(int opcode, String name) {
-        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
+        assertTypeOnStack(StackEntryType.INT, name + " requires int on stack");
+        writeByte(opcode);
+        writeShort(0);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        return ret;
+    }
+
+    private void addNullComparison(CodeLocation location, int opcode, String name) {
+        assertTypeOnStack(StackEntryType.OBJECT, name + " requires reference type on stack");
+        writeByte(opcode);
+        writeShort(location.getLocation() - currentOffset);
+        mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
+    }
+
+    private BranchEnd addNullComparison(int opcode, String name) {
+        assertTypeOnStack(StackEntryType.OBJECT, name + " requires reference type on stack");
         writeByte(opcode);
         writeShort(0);
         currentOffset += 3;
