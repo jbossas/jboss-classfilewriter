@@ -930,6 +930,54 @@ public class CodeAttribute extends Attribute {
         return ret;
     }
 
+    public void ifIcmpeq(CodeLocation location) {
+        addIcmp(location, Opcode.IF_ICMPEQ, "ifIcmpeq");
+    }
+
+    public BranchEnd ifIcmpeq() {
+        return addIcmp(Opcode.IF_ICMPEQ, "ifIcmpeq");
+    }
+
+    public void ifIcmpne(CodeLocation location) {
+        addIcmp(location, Opcode.IF_ICMPNE, "ifIcmpne");
+    }
+
+    public BranchEnd ifIcmpne() {
+        return addIcmp(Opcode.IF_ICMPNE, "ifIcmpne");
+    }
+
+    public void ifIcmplt(CodeLocation location) {
+        addIcmp(location, Opcode.IF_ICMPLT, "ifIcmplt");
+    }
+
+    public BranchEnd ifIcmplt() {
+        return addIcmp(Opcode.IF_ICMPLT, "ifIcmplt");
+    }
+
+    public void ifIcmple(CodeLocation location) {
+        addIcmp(location, Opcode.IF_ICMPLE, "ifIcmple");
+    }
+
+    public BranchEnd ifIcmple() {
+        return addIcmp(Opcode.IF_ICMPLE, "ifIcmple");
+    }
+
+    public void ifIcmpgt(CodeLocation location) {
+        addIcmp(location, Opcode.IF_ICMPGT, "ifIcmpgt");
+    }
+
+    public BranchEnd ifIcmpgt() {
+        return addIcmp(Opcode.IF_ICMPGT, "ifIcmpgt");
+    }
+
+    public void ifIcmpge(CodeLocation location) {
+        addIcmp(location, Opcode.IF_ICMPGE, "ifIcmpge");
+    }
+
+    public BranchEnd ifIcmpge() {
+        return addIcmp(Opcode.IF_ICMPGE, "ifIcmpge");
+    }
+
     /**
      * Jump to the given location if the reference type on the top of the stack is null
      */
@@ -1320,6 +1368,27 @@ public class CodeAttribute extends Attribute {
                         + currentLocalVariableState + " local variable entry " + i + " is invalid");
             }
         }
+    }
+
+    private void addIcmp(CodeLocation location, int opcode, String name) {
+        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
+        assertTypeOnStack(1, StackEntryType.INT, name + " requires reference type in position 2 on stack");
+        writeByte(opcode);
+        writeShort(location.getLocation() - currentOffset);
+        mergeStackFrames(location.getStackFrame());
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    private BranchEnd addIcmp(int opcode, String name) {
+        assertTypeOnStack(StackEntryType.INT, name + " requires reference type on stack");
+        assertTypeOnStack(1, StackEntryType.INT, name + " requires reference type int position 2 on stack");
+        writeByte(opcode);
+        writeShort(0);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        return ret;
     }
 
 }
