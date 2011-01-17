@@ -1121,6 +1121,9 @@ public class CodeAttribute extends Attribute {
     }
 
     public void invokespecial(Method method) {
+        if (Modifier.isStatic(method.getModifiers())) {
+            throw new InvalidBytecodeException("Cannot use invokespacial to invoke a static method");
+        }
         invokespecial(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
                 DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
                         .getParameterTypes()));
@@ -1144,7 +1147,86 @@ public class CodeAttribute extends Attribute {
         } else if (returnType.equals("V")) {
             advanceFrame(currentFrame.pop(pop));
         } else {
-            advanceFrame(currentFrame.pop(pop).replace(returnType));
+            advanceFrame(currentFrame.pop(pop).push(returnType));
+        }
+    }
+
+    public void invokestatic(String className, String methodName, String descriptor) {
+        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
+        String returnType = DescriptorUtils.getReturnType(descriptor);
+        invokestatic(className, methodName, descriptor, returnType, params);
+    }
+
+    public void invokestatic(String className, String methodName, String returnType, String[] parameterTypes) {
+        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        invokestatic(className, methodName, descriptor, returnType, parameterTypes);
+    }
+
+    public void invokestatic(Method method) {
+        if (!Modifier.isStatic(method.getModifiers())) {
+            throw new InvalidBytecodeException("Cannot use invokestatic to invoke a non static method");
+        }
+        invokestatic(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
+                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+                        .getParameterTypes()));
+    }
+
+    private void invokestatic(String className, String methodName, String descriptor, String returnType, String[] parameterTypes) {
+        // TODO: validate stack
+        int method = constPool.addMethodEntry(className, methodName, descriptor);
+        writeByte(Opcode.INVOKESTATIC);
+        writeShort(method);
+        currentOffset += 3;
+        int pop = parameterTypes.length;
+        for (String argument : parameterTypes) {
+            if (argument.equals("D") || argument.equals("J")) {
+                pop++;
+            }
+        }
+        if (returnType.equals("V")) {
+            advanceFrame(currentFrame.pop(pop));
+        } else {
+            advanceFrame(currentFrame.pop(pop).push(returnType));
+        }
+    }
+
+    public void invokevirtual(String className, String methodName, String descriptor) {
+        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
+        String returnType = DescriptorUtils.getReturnType(descriptor);
+        invokevirtual(className, methodName, descriptor, returnType, params);
+    }
+
+    public void invokevirtual(String className, String methodName, String returnType, String[] parameterTypes) {
+        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        invokevirtual(className, methodName, descriptor, returnType, parameterTypes);
+    }
+
+    public void invokevirtual(Method method) {
+        if (Modifier.isStatic(method.getModifiers())) {
+            throw new InvalidBytecodeException("Cannot use invokevirtual to invoke a static method");
+        }
+        invokevirtual(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
+                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+                        .getParameterTypes()));
+    }
+
+    private void invokevirtual(String className, String methodName, String descriptor, String returnType,
+            String[] parameterTypes) {
+        // TODO: validate stack
+        int method = constPool.addMethodEntry(className, methodName, descriptor);
+        writeByte(Opcode.INVOKEVIRTUAL);
+        writeShort(method);
+        currentOffset += 3;
+        int pop = 1 + parameterTypes.length;
+        for (String argument : parameterTypes) {
+            if (argument.equals("D") || argument.equals("J")) {
+                pop++;
+            }
+        }
+        if (returnType.equals("V")) {
+            advanceFrame(currentFrame.pop(pop));
+        } else {
+            advanceFrame(currentFrame.pop(pop).push(returnType));
         }
     }
 
