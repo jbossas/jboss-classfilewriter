@@ -32,7 +32,10 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
@@ -58,9 +61,9 @@ public class ClassFile implements WritableEntry {
 
     private final List<String> interfaces = new ArrayList<String>();
 
-    private final List<ClassField> fields = new ArrayList<ClassField>();
+    private final Set<ClassField> fields = new HashSet<ClassField>();
 
-    private final List<ClassMethod> methods = new ArrayList<ClassMethod>();
+    private final Set<ClassMethod> methods = new HashSet<ClassMethod>();
 
     private byte[] bytecode;
 
@@ -89,6 +92,9 @@ public class ClassFile implements WritableEntry {
 
     public ClassField addField(int accessFlags,String name, String descriptor,  String signature) {
         ClassField field = new ClassField((short) accessFlags, name, descriptor, signature, this, constPool);
+        if (fields.contains(field)) {
+            throw new DuplicateMemberException("Field  already exists. Field: " + name + " Descriptor:" + signature);
+        }
         fields.add(field);
         return field;
     }
@@ -111,6 +117,10 @@ public class ClassFile implements WritableEntry {
 
     public ClassMethod addMethod(int accessFlags, String name, String returnType, String... parameters) {
         ClassMethod method = new ClassMethod(name, returnType, parameters, accessFlags, this);
+        if (methods.contains(method)) {
+            throw new DuplicateMemberException("Method  already exists. Method: " + name + " Parameters:"
+                    + Arrays.toString(parameters) + " Return Type: " + returnType);
+        }
         methods.add(method);
         return method;
     }

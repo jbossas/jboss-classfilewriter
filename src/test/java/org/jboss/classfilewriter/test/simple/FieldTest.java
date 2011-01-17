@@ -30,6 +30,7 @@ import junit.framework.Assert;
 
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassFile;
+import org.jboss.classfilewriter.DuplicateMemberException;
 import org.junit.Test;
 
 public class FieldTest {
@@ -77,6 +78,13 @@ public class FieldTest {
 
         Assert.assertEquals("field4", field4.getName());
 
+    }
+
+    @Test(expected = DuplicateMemberException.class)
+    public void testDuplicateField() {
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "DuplicateField", "java/lang/Object");
+        test.addField(AccessFlag.PUBLIC, "field1", "I");
+        test.addField(AccessFlag.PUBLIC, "field1", "I");
     }
 
     public class AA {

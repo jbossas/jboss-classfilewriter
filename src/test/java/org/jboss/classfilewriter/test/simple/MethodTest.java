@@ -29,6 +29,7 @@ import junit.framework.Assert;
 
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassFile;
+import org.jboss.classfilewriter.DuplicateMemberException;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
@@ -79,6 +80,13 @@ public class MethodTest {
         Method method = clazz.getDeclaredMethod("method", int.class, long.class);
         Assert.assertEquals(1, method.getExceptionTypes().length);
         Assert.assertEquals(Exception.class, method.getExceptionTypes()[0]);
+    }
+
+    @Test(expected = DuplicateMemberException.class)
+    public void testDuplicateMethod() {
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "DuplicateMembers", "java/lang/Object");
+        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method", "Ljava/lang/Object;", "I", "J");
+        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method", "Ljava/lang/Object;", "I", "J");
     }
 
     public class AA {

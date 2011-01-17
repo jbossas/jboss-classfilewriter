@@ -37,6 +37,7 @@ public class ClassField implements WritableEntry {
     private final String name;
     private final short nameIndex;
     private final String descriptor;
+
     private final short descriptorIndex;
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 
@@ -79,5 +80,36 @@ public class ClassField implements WritableEntry {
 
     public ClassFile getClassFile() {
         return classFile;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((descriptor == null) ? 0 : descriptor.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ClassField other = (ClassField) obj;
+        if (descriptor == null) {
+            if (other.descriptor != null)
+                return false;
+        } else if (!descriptor.equals(other.descriptor))
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
     }
 }
