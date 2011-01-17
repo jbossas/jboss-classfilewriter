@@ -1416,7 +1416,7 @@ public class CodeAttribute extends Attribute {
      * Adds the appropriate lconst instruction.
      * <p>
      * note, if the value is not 0 or 1 then ldc is used instead
-     * 
+     *
      */
     public void lconst(long value) {
         if (value == 0) {
@@ -1433,7 +1433,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for an int.
-     * 
+     *
      * @param value
      */
     public void ldc(int value) {
@@ -1448,7 +1448,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for float
-     * 
+     *
      */
     public void ldc(float value) {
         int index = constPool.addFloatEntry(value);
@@ -1460,7 +1460,7 @@ public class CodeAttribute extends Attribute {
      * Adds an ldc instruction for a String
      * <p>
      * To load a class literal using ldc use the @{link #loadType(String)} method.
-     * 
+     *
      */
     public void ldc(String value) {
         int index = constPool.addStringEntry(value);
@@ -1470,7 +1470,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for an int.
-     * 
+     *
      */
     private void ldcInternal(int index) {
         if (index > 0xFF) {
@@ -1486,7 +1486,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc2_w instruction for double
-     * 
+     *
      */
     public void ldc2(double value) {
         int index = constPool.addDoubleEntry(value);
@@ -1498,7 +1498,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc2_w instruction for long
-     * 
+     *
      */
     public void ldc2(long value) {
         int index = constPool.addLongEntry(value);
@@ -1687,7 +1687,7 @@ public class CodeAttribute extends Attribute {
     /**
      * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
      * instruction that is written to the bytecode stream
-     * 
+     *
      */
     public CodeLocation mark() {
         return new CodeLocation(currentOffset, currentFrame);

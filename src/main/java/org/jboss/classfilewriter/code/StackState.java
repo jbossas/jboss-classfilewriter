@@ -271,8 +271,7 @@ public class StackState {
         return Collections.unmodifiableList(contents);
     }
 
-    public StackState constructorCall(int initializedValueStackPosition) {
-        StackEntry entry = contents.get(contents.size() - 1 - initializedValueStackPosition);
+    public StackState constructorCall(int initializedValueStackPosition, StackEntry entry) {
         List<StackEntry> newContents = new ArrayList<StackEntry>(contents.size());
         if (entry.getType() == StackEntryType.UNINITIALIZED_THIS) {
             for (int i = 0; i < contents.size() - 1 - initializedValueStackPosition; ++i) {

@@ -217,8 +217,10 @@ public class StackFrame {
      * it
      */
     public StackFrame constructorCall(int initializedValueStackPosition) {
-        StackState ns = stackState.constructorCall(initializedValueStackPosition);
-        return new StackFrame(ns, localVariableState);
+        StackEntry entry = stackState.getContents().get(stackState.getContents().size() - 1 - initializedValueStackPosition);
+        StackState ns = stackState.constructorCall(initializedValueStackPosition, entry);
+        LocalVariableState locals = localVariableState.constructorCall(entry);
+        return new StackFrame(ns, locals);
 
     }
 
