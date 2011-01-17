@@ -1095,15 +1095,6 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.replace("I"));
     }
 
-    public void invokeInterface(String className, String methodName, String descriptor) {
-
-    }
-
-    private void invokeInterface(String className, String methodName, String descriptor, String returnType, int argumentCount) {
-        int methodIndex = constPool.addInterfaceMethodEntry(className, methodName, descriptor);
-
-    }
-
     public void invokespecial(String className, String methodName, String descriptor) {
         String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
         String returnType = DescriptorUtils.getReturnType(descriptor);
@@ -1204,6 +1195,10 @@ public class CodeAttribute extends Attribute {
     public void invokevirtual(Method method) {
         if (Modifier.isStatic(method.getModifiers())) {
             throw new InvalidBytecodeException("Cannot use invokevirtual to invoke a static method");
+        } else if (Modifier.isPrivate(method.getModifiers())) {
+            throw new InvalidBytecodeException("Cannot use invokevirtual to invoke a private method");
+        } else if (method.getDeclaringClass().isInterface()) {
+            throw new InvalidBytecodeException("Cannot use invokevirtual to invoke an interface method");
         }
         invokevirtual(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
                 DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
@@ -1223,6 +1218,54 @@ public class CodeAttribute extends Attribute {
                 pop++;
             }
         }
+        if (returnType.equals("V")) {
+            advanceFrame(currentFrame.pop(pop));
+        } else {
+            advanceFrame(currentFrame.pop(pop).push(returnType));
+        }
+    }
+
+    public void invokeinterface(String className, String methodName, String descriptor) {
+        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
+        String returnType = DescriptorUtils.getReturnType(descriptor);
+        invokeinterface(className, methodName, descriptor, returnType, params);
+    }
+
+    public void invokeinterface(String className, String methodName, String returnType, String[] parameterTypes) {
+        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        invokeinterface(className, methodName, descriptor, returnType, parameterTypes);
+    }
+
+    public void invokeinterface(Method method) {
+        if (Modifier.isStatic(method.getModifiers())) {
+            throw new InvalidBytecodeException("Cannot use invokeinterface to invoke a static method");
+        } else if (Modifier.isPrivate(method.getModifiers())) {
+            throw new InvalidBytecodeException("Cannot use invokeinterface to invoke a private method");
+        } else if (!method.getDeclaringClass().isInterface()) {
+            throw new InvalidBytecodeException("Cannot use invokeinterface to invoke a non interface method");
+        }
+        invokeinterface(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
+                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+                        .getParameterTypes()));
+    }
+
+    private void invokeinterface(String className, String methodName, String descriptor, String returnType,
+            String[] parameterTypes) {
+        // TODO: validate stack
+
+        int pop = 1 + parameterTypes.length;
+        for (String argument : parameterTypes) {
+            if (argument.equals("D") || argument.equals("J")) {
+                pop++;
+            }
+        }
+        int method = constPool.addInterfaceMethodEntry(className, methodName, descriptor);
+        writeByte(Opcode.INVOKEINTERFACE);
+        writeShort(method);
+        writeByte(pop);
+        writeByte(0);
+        currentOffset += 5;
+
         if (returnType.equals("V")) {
             advanceFrame(currentFrame.pop(pop));
         } else {
