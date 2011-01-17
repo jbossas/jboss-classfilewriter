@@ -51,10 +51,10 @@ public class MethodTester<T> {
         ClassFile file = new ClassFile("org.jboss.classwriter.test.GeneratedClass" + methodNo++, "java.lang.Object");
         String[] nparams = new String[params.length];
         for(int i = 0; i < params.length;++i){
-            nparams[i] = DescriptorUtils.classToStringRepresentation(params[i]);
+            nparams[i] = DescriptorUtils.makeDescriptor(params[i]);
         }
         method = file.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "method", DescriptorUtils
-                .classToStringRepresentation(returnType), nparams);
+                .makeDescriptor(returnType), nparams);
     }
 
     public CodeAttribute getCodeAttribute() {

@@ -1096,27 +1096,27 @@ public class CodeAttribute extends Attribute {
     }
 
     public void invokespecial(String className, String methodName, String descriptor) {
-        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
-        String returnType = DescriptorUtils.getReturnType(descriptor);
+        String[] params = DescriptorUtils.parameterDescriptors(descriptor);
+        String returnType = DescriptorUtils.returnType(descriptor);
         invokespecial(className, methodName, descriptor, returnType, params);
     }
 
     public void invokespecial(String className, String methodName, String returnType, String[] parameterTypes) {
-        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        String descriptor = DescriptorUtils.methodDescriptor(parameterTypes, returnType);
         invokespecial(className, methodName, descriptor, returnType, parameterTypes);
     }
 
     public void invokespecial(Constructor<?> constructor) {
         invokespecial(constructor.getDeclaringClass().getName(), "<init>", DescriptorUtils
-                .getConstructorDescriptor(constructor), "V", DescriptorUtils.getParameterTypes(constructor.getParameterTypes()));
+                .makeDescriptor(constructor), "V", DescriptorUtils.parameterDescriptors(constructor.getParameterTypes()));
     }
 
     public void invokespecial(Method method) {
         if (Modifier.isStatic(method.getModifiers())) {
             throw new InvalidBytecodeException("Cannot use invokespacial to invoke a static method");
         }
-        invokespecial(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
-                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+        invokespecial(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
+                DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                         .getParameterTypes()));
     }
 
@@ -1143,13 +1143,13 @@ public class CodeAttribute extends Attribute {
     }
 
     public void invokestatic(String className, String methodName, String descriptor) {
-        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
-        String returnType = DescriptorUtils.getReturnType(descriptor);
+        String[] params = DescriptorUtils.parameterDescriptors(descriptor);
+        String returnType = DescriptorUtils.returnType(descriptor);
         invokestatic(className, methodName, descriptor, returnType, params);
     }
 
     public void invokestatic(String className, String methodName, String returnType, String[] parameterTypes) {
-        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        String descriptor = DescriptorUtils.methodDescriptor(parameterTypes, returnType);
         invokestatic(className, methodName, descriptor, returnType, parameterTypes);
     }
 
@@ -1157,8 +1157,8 @@ public class CodeAttribute extends Attribute {
         if (!Modifier.isStatic(method.getModifiers())) {
             throw new InvalidBytecodeException("Cannot use invokestatic to invoke a non static method");
         }
-        invokestatic(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
-                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+        invokestatic(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
+                DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                         .getParameterTypes()));
     }
 
@@ -1182,13 +1182,13 @@ public class CodeAttribute extends Attribute {
     }
 
     public void invokevirtual(String className, String methodName, String descriptor) {
-        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
-        String returnType = DescriptorUtils.getReturnType(descriptor);
+        String[] params = DescriptorUtils.parameterDescriptors(descriptor);
+        String returnType = DescriptorUtils.returnType(descriptor);
         invokevirtual(className, methodName, descriptor, returnType, params);
     }
 
     public void invokevirtual(String className, String methodName, String returnType, String[] parameterTypes) {
-        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        String descriptor = DescriptorUtils.methodDescriptor(parameterTypes, returnType);
         invokevirtual(className, methodName, descriptor, returnType, parameterTypes);
     }
 
@@ -1200,8 +1200,8 @@ public class CodeAttribute extends Attribute {
         } else if (method.getDeclaringClass().isInterface()) {
             throw new InvalidBytecodeException("Cannot use invokevirtual to invoke an interface method");
         }
-        invokevirtual(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
-                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+        invokevirtual(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
+                DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                         .getParameterTypes()));
     }
 
@@ -1226,13 +1226,13 @@ public class CodeAttribute extends Attribute {
     }
 
     public void invokeinterface(String className, String methodName, String descriptor) {
-        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
-        String returnType = DescriptorUtils.getReturnType(descriptor);
+        String[] params = DescriptorUtils.parameterDescriptors(descriptor);
+        String returnType = DescriptorUtils.returnType(descriptor);
         invokeinterface(className, methodName, descriptor, returnType, params);
     }
 
     public void invokeinterface(String className, String methodName, String returnType, String[] parameterTypes) {
-        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        String descriptor = DescriptorUtils.methodDescriptor(parameterTypes, returnType);
         invokeinterface(className, methodName, descriptor, returnType, parameterTypes);
     }
 
@@ -1244,8 +1244,8 @@ public class CodeAttribute extends Attribute {
         } else if (!method.getDeclaringClass().isInterface()) {
             throw new InvalidBytecodeException("Cannot use invokeinterface to invoke a non interface method");
         }
-        invokeinterface(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
-                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+        invokeinterface(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
+                DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                         .getParameterTypes()));
     }
 

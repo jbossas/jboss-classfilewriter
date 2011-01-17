@@ -67,7 +67,7 @@ public class ClassMethod implements WritableEntry {
         this.returnType = DescriptorUtils.validateDescriptor(returnType);
         this.parameters = parameters;
         this.name = name;
-        this.descriptor = DescriptorUtils.getMethodDescriptor(parameters, returnType);
+        this.descriptor = DescriptorUtils.methodDescriptor(parameters, returnType);
         this.accessFlags = accessFlags;
         this.nameIndex = constPool.addUtf8Entry(name);
         this.descriptorIndex = constPool.addUtf8Entry(descriptor);

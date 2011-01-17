@@ -94,11 +94,11 @@ public class ClassFile implements WritableEntry {
     }
 
     public ClassField addField(int accessFlags,String name, Class<?> type) {
-        return addField(accessFlags,name, DescriptorUtils.classToStringRepresentation(type));
+        return addField(accessFlags,name, DescriptorUtils.makeDescriptor(type));
     }
 
     public ClassField addField( int accessFlags, String name, Class<?> type, Type genericType) {
-        return addField(accessFlags, name, DescriptorUtils.classToStringRepresentation(type),  SignatureBuilder
+        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type),  SignatureBuilder
                 .fieldAttribute(genericType));
     }
 
@@ -122,7 +122,7 @@ public class ClassFile implements WritableEntry {
      */
     public ClassMethod addMethod(Method method) {
         ClassMethod classMethod = addMethod(method.getModifiers(), method.getName(), DescriptorUtils
-                .classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+                .makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                 .getParameterTypes()));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);

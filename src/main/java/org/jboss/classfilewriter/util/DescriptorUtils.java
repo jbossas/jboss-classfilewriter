@@ -38,16 +38,54 @@ public class DescriptorUtils {
      * 
      * e.g. java.lang.String => Ljava/lang/String;
      */
-    public static String extToInt(String className) {
+    public static String makeDescriptor(String className) {
         String repl = className.replace(".", "/");
         return 'L' + repl + ';';
+    }
+
+    public static String makeDescriptor(Class<?> c) {
+        if (void.class.equals(c)) {
+            return "V";
+        } else if (byte.class.equals(c)) {
+            return "B";
+        } else if (char.class.equals(c)) {
+            return "C";
+        } else if (double.class.equals(c)) {
+            return "D";
+        } else if (float.class.equals(c)) {
+            return "F";
+        } else if (int.class.equals(c)) {
+            return "I";
+        } else if (long.class.equals(c)) {
+            return "J";
+        } else if (short.class.equals(c)) {
+            return "S";
+        } else if (boolean.class.equals(c)) {
+            return "Z";
+        } else if (c.isArray()) {
+            return c.getName().replace(".", "/");
+        } else
+        // normal object
+        {
+            return makeDescriptor(c.getName());
+        }
+    }
+
+    public static String makeDescriptor(Constructor<?> c) {
+        StringBuilder desc = new StringBuilder("(");
+        for (Class<?> p : c.getParameterTypes()) {
+            desc.append(DescriptorUtils.makeDescriptor(p));
+        }
+        desc.append(")");
+        desc.append("V");
+        return desc.toString();
     }
 
     /**
      * returns an array of String representations of the parameter types. Primitives are returned as their native
      * representations, while clases are returned in the internal descriptor form e.g. Ljava/lang/Integer;
      */
-    public static String[] descriptorStringToParameterArray(String methodDescriptor) {
+    public static String[] parameterDescriptors(String methodDescriptor) {
         int i = 1; // char 0 is a '('
         List<String> ret = new ArrayList<String>();
         int arraystart = -1;
@@ -88,37 +126,22 @@ public class DescriptorUtils {
         return r;
     }
 
-    public static String getReturnType(String methodDescriptor) {
+    public static String[] parameterDescriptors(Method m) {
+        return parameterDescriptors(m.getParameterTypes());
+    }
+
+    public static String[] parameterDescriptors(Class<?>[] parameters) {
+        String[] ret = new String[parameters.length];
+        for (int i = 0; i < ret.length; ++i) {
+            ret[i] = DescriptorUtils.makeDescriptor(parameters[i]);
+        }
+        return ret;
+    }
+
+    public static String returnType(String methodDescriptor) {
         return methodDescriptor.substring(methodDescriptor.lastIndexOf(')') + 1, methodDescriptor.length());
     }
 
-    public static String classToStringRepresentation(Class<?> c) {
-        if (void.class.equals(c)) {
-            return "V";
-        } else if (byte.class.equals(c)) {
-            return "B";
-        } else if (char.class.equals(c)) {
-            return "C";
-        } else if (double.class.equals(c)) {
-            return "D";
-        } else if (float.class.equals(c)) {
-            return "F";
-        } else if (int.class.equals(c)) {
-            return "I";
-        } else if (long.class.equals(c)) {
-            return "J";
-        } else if (short.class.equals(c)) {
-            return "S";
-        } else if (boolean.class.equals(c)) {
-            return "Z";
-        } else if (c.isArray()) {
-            return c.getName().replace(".", "/");
-        } else
-        // normal object
-        {
-            return extToInt(c.getName());
-        }
-    }
 
     /**
      * returns true if the descriptor represents a primitive type
@@ -153,43 +176,17 @@ public class DescriptorUtils {
         return cls == double.class || cls == long.class;
     }
 
-    public static String getConstructorDescriptor(Constructor<?> c) {
-        StringBuilder desc = new StringBuilder("(");
-        for (Class<?> p : c.getParameterTypes()) {
-            desc.append(DescriptorUtils.classToStringRepresentation(p));
-        }
-        desc.append(")");
-        desc.append("V");
-        return desc.toString();
-    }
-
-    public static String[] getParameterTypes(Method m) {
-        String[] ret = new String[m.getParameterTypes().length];
-        for (int i = 0; i < ret.length; ++i) {
-            ret[i] = DescriptorUtils.classToStringRepresentation(m.getParameterTypes()[i]);
-        }
-        return ret;
-    }
-
-    public static String[] getParameterTypes(Class<?>[] parameters) {
-        String[] ret = new String[parameters.length];
-        for (int i = 0; i < ret.length; ++i) {
-            ret[i] = DescriptorUtils.classToStringRepresentation(parameters[i]);
-        }
-        return ret;
-    }
-
-    public static String getMethodDescriptor(Method m) {
+    public static String methodDescriptor(Method m) {
         StringBuilder desc = new StringBuilder("(");
         for (Class<?> p : m.getParameterTypes()) {
-            desc.append(DescriptorUtils.classToStringRepresentation(p));
+            desc.append(DescriptorUtils.makeDescriptor(p));
         }
         desc.append(")");
-        desc.append(DescriptorUtils.classToStringRepresentation(m.getReturnType()));
+        desc.append(DescriptorUtils.makeDescriptor(m.getReturnType()));
         return desc.toString();
     }
 
-   public static String getMethodDescriptor(String[] parameters, String returnType) {
+    public static String methodDescriptor(String[] parameters, String returnType) {
         StringBuilder desc = new StringBuilder("(");
         for (String p : parameters) {
             desc.append(p);
