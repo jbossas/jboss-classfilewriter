@@ -70,7 +70,7 @@ public class ClassFile implements WritableEntry {
 
     public ClassFile(String name, String superclass, String... interfaces) {
         this.version = JavaVersions.JAVA_6;
-        this.name = name;
+        this.name = name.replace('/', '.'); // store the name in . form
         this.superclass = superclass;
         this.accessFlags = AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC);
         for (String i : interfaces) {
@@ -196,12 +196,13 @@ public class ClassFile implements WritableEntry {
         try {
             AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
                 public Object run() throws Exception {
-                    Class<?> cl = Class.forName("java.lang.ClassLoader");
+                    Class<?> cl = Class.forName("java.lang.ClassLoader", false, null);
                     defineClass1 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
                             int.class });
-
+                    defineClass1.setAccessible(true);
                     defineClass2 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
                             int.class, ProtectionDomain.class });
+                    defineClass2.setAccessible(true);
                     return null;
                 }
             });
@@ -219,6 +220,12 @@ public class ClassFile implements WritableEntry {
      */
     public Class<?> define(ClassLoader loader, ProtectionDomain domain) {
         try {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                String packageName = name.substring(0, name.lastIndexOf('.'));
+                RuntimePermission permission = new RuntimePermission("defineClassInPackage." + packageName);
+                sm.checkPermission(permission);
+            }
             byte[] b = toBytecode();
             java.lang.reflect.Method method;
             Object[] args;
@@ -229,9 +236,7 @@ public class ClassFile implements WritableEntry {
                 method = defineClass2;
                 args = new Object[] { name.replace('/', '.'), b, new Integer(0), new Integer(b.length), domain };
             }
-            method.setAccessible(true);
-            Class<?> clazz = Class.class.cast(method.invoke(loader, args));
-            method.setAccessible(false);
+            Class<?> clazz = (Class<?>) method.invoke(loader, args);
             return clazz;
         } catch (RuntimeException e) {
             throw e;
