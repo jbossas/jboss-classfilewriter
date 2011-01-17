@@ -222,4 +222,9 @@ public class StackFrame {
 
     }
 
+    public StackFrame swap() {
+        StackState ns = stackState.swap();
+        return new StackFrame(ns, localVariableState);
+    }
+
 }

@@ -1738,6 +1738,38 @@ public class CodeAttribute extends Attribute {
         currentFrame = null;
     }
 
+    public void saload() {
+        assertTypeOnStack(StackEntryType.INT, "saload requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.OBJECT, "saload requires an array in position 2 on the stack");
+        writeByte(Opcode.SALOAD);
+        currentOffset++;
+        advanceFrame(currentFrame.pop2push1("I"));
+    }
+
+    public void sastore() {
+        assertTypeOnStack(StackEntryType.INT, "sastore requires an int on top of the stack");
+        assertTypeOnStack(1, StackEntryType.INT, "sastore requires an int in position 2 on the stack");
+        assertTypeOnStack(2, StackEntryType.OBJECT, "sastore requires an array reference in position 3 on the stack");
+        writeByte(Opcode.SASTORE);
+        currentOffset++;
+        advanceFrame(currentFrame.pop3());
+    }
+
+    public void sipush(short value) {
+        writeByte(Opcode.SIPUSH);
+        writeShort(value);
+        currentOffset += 3;
+        advanceFrame(currentFrame.push("S"));
+    }
+
+    public void swap() {
+        assertNotWideOnStack("swap cannot be used when wide type is on top of stack");
+        assertNotWideOnStack(1, "swap cannot be used when wide type is on position 1 of the stack");
+        writeByte(Opcode.SWAP);
+        currentOffset++;
+        advanceFrame(currentFrame.swap());
+    }
+
     private void writeByte(int n) {
         try {
             data.writeByte(n);

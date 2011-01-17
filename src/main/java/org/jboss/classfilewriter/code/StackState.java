@@ -301,4 +301,12 @@ public class StackState {
         }
     }
 
+    public StackState swap() {
+        int size = contents.size();
+        List<StackEntry> newContents = new ArrayList<StackEntry>(contents.subList(0, size - 2));
+        newContents.add(contents.get(size - 1));
+        newContents.add(contents.get(size - 2));
+        return new StackState(newContents, constPool);
+    }
+
 }
