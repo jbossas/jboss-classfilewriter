@@ -35,12 +35,12 @@ public class ExceptionHandlerTest {
     public void testWithNpe() {
         MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ExceptionHandler handler = ca.exceptionHandlerStart("java/lang/RuntimeException");
+        ExceptionHandler handler = ca.exceptionBlockStart("java/lang/RuntimeException");
         ca.getstatic(getClass().getName(), "VALUE", "[Ljava/lang/Integer;");
         ca.arraylength();
         ca.returnInstruction();
-        ca.exceptionHandlerEnd(handler);
-        ca.exceptionHandlerAdd(handler);
+        ca.exceptionBlockEnd(handler);
+        ca.exceptionHandlerStart(handler);
         ca.iconst(1);
         ca.returnInstruction();
         Assert.assertEquals(1, (int) mt.invoke());
@@ -50,11 +50,11 @@ public class ExceptionHandlerTest {
     public void testNotCalled() {
         MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ExceptionHandler handler = ca.exceptionHandlerStart("java/lang/RuntimeException");
+        ExceptionHandler handler = ca.exceptionBlockStart("java/lang/RuntimeException");
         ca.iconst(200);
         ca.returnInstruction();
-        ca.exceptionHandlerEnd(handler);
-        ca.exceptionHandlerAdd(handler);
+        ca.exceptionBlockEnd(handler);
+        ca.exceptionHandlerStart(handler);
         ca.iconst(20);
         ca.returnInstruction();
         Assert.assertEquals(200, (int) mt.invoke());

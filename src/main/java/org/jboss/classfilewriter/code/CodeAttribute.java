@@ -521,7 +521,7 @@ public class CodeAttribute extends Attribute {
     /**
      * Begin writing an exception handler block. The handler is not actually persisted until exceptionHandler is called.
      */
-    public ExceptionHandler exceptionHandlerStart(String exceptionType) {
+    public ExceptionHandler exceptionBlockStart(String exceptionType) {
         ExceptionHandler handler = new ExceptionHandler(currentOffset, constPool.addClassEntry(exceptionType), exceptionType,
                 currentFrame);
         return handler;
@@ -532,14 +532,14 @@ public class CodeAttribute extends Attribute {
      * the handler
      *
      */
-    public void exceptionHandlerEnd(ExceptionHandler handler) {
+    public void exceptionBlockEnd(ExceptionHandler handler) {
         handler.setEnd(currentOffset);
     }
 
     /**
      * Marks the current code location as the exception handler and adds the handler to the exception handler table;
      */
-    public void exceptionHandlerAdd(ExceptionHandler handler) {
+    public void exceptionHandlerStart(ExceptionHandler handler) {
         if (handler.getEnd() == 0) {
             throw new InvalidBytecodeException(
                     "handler end location must be initialised via exceptionHandlerEnd before calling exceptionHandlerAdd");

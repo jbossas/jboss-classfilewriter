@@ -36,12 +36,13 @@ import org.jboss.classfilewriter.code.StackFrame;
 import org.jboss.classfilewriter.code.StackFrameType;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
-
 /**
  * A JDK 6 StackMap sttribute.
- *
+ * 
+ *TODO: this will currently fall over if the code length, max locals or max stack is above 65535
+ * 
  * @author Stuart Douglas
- *
+ * 
  */
 public class StackMapTableAttribute extends Attribute {
 
