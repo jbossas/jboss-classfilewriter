@@ -177,7 +177,9 @@ public class CodeAttribute extends Attribute {
             throw new InvalidBytecodeException("Cannot load variable at " + no + ". Local Variables: " + locals.toString());
         }
         StackEntry entry = locals.get(no);
-        if (entry.getType() != StackEntryType.OBJECT && entry.getType() != StackEntryType.NULL) {
+        if (entry.getType() != StackEntryType.OBJECT && entry.getType() != StackEntryType.NULL
+                && entry.getType() != StackEntryType.UNINITIALIZED_THIS
+                && entry.getType() != StackEntryType.UNITITIALIZED_OBJECT) {
             throw new InvalidBytecodeException("Invalid local variable at location " + no + " Local Variables "
                     + locals.toString());
         }
