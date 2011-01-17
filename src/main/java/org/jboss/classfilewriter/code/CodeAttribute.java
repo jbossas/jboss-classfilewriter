@@ -24,6 +24,8 @@ package org.jboss.classfilewriter.code;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1102,6 +1104,50 @@ public class CodeAttribute extends Attribute {
 
     }
 
+    public void invokespecial(String className, String methodName, String descriptor) {
+        String[] params = DescriptorUtils.descriptorStringToParameterArray(descriptor);
+        String returnType = DescriptorUtils.getReturnType(descriptor);
+        invokespecial(className, methodName, descriptor, returnType, params);
+    }
+
+    public void invokespecial(String className, String methodName, String returnType, String[] parameterTypes) {
+        String descriptor = DescriptorUtils.getMethodDescriptor(parameterTypes, returnType);
+        invokespecial(className, methodName, descriptor, returnType, parameterTypes);
+    }
+
+    public void invokespecial(Constructor<?> constructor) {
+        invokespecial(constructor.getDeclaringClass().getName(), "<init>", DescriptorUtils
+                .getConstructorDescriptor(constructor), "V", DescriptorUtils.getParameterTypes(constructor.getParameterTypes()));
+    }
+
+    public void invokespecial(Method method) {
+        invokespecial(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.getMethodDescriptor(method),
+                DescriptorUtils.classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+                        .getParameterTypes()));
+    }
+
+    private void invokespecial(String className, String methodName, String descriptor, String returnType,
+            String[] parameterTypes) {
+        // TODO: validate stack
+        int method = constPool.addMethodEntry(className, methodName, descriptor);
+        writeByte(Opcode.INVOKESPECIAL);
+        writeShort(method);
+        currentOffset += 3;
+        int pop = 1 + parameterTypes.length;
+        for (String argument : parameterTypes) {
+            if (argument.equals("D") || argument.equals("J")) {
+                pop++;
+            }
+        }
+        if (methodName.equals("<init>")) {
+            advanceFrame(currentFrame.constructorCall(pop - 1));
+        } else if (returnType.equals("V")) {
+            advanceFrame(currentFrame.pop(pop));
+        } else {
+            advanceFrame(currentFrame.pop(pop).replace(returnType));
+        }
+    }
+
     public void ior() {
         assertTypeOnStack(StackEntryType.INT, "ior requires int on stack");
         assertTypeOnStack(1, StackEntryType.INT, "ior requires int on stack");
@@ -1258,6 +1304,83 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.push("J"));
     }
 
+    /**
+     * Adds an ldc instruction for an int.
+     * 
+     * @param value
+     */
+    public void ldc(int value) {
+        if (value > -2 && value < 6) {
+            iconst(value);
+            return;
+        }
+        int index = constPool.addIntegerEntry(value);
+        ldcInternal(index);
+        advanceFrame(currentFrame.push("I"));
+    }
+
+    /**
+     * Adds an ldc instruction for float
+     * 
+     */
+    public void ldc(float value) {
+        int index = constPool.addFloatEntry(value);
+        ldcInternal(index);
+        advanceFrame(currentFrame.push("F"));
+    }
+
+    /**
+     * Adds an ldc instruction for a String
+     * <p>
+     * To load a class literal using ldc use the @{link #loadType(String)} method.
+     * 
+     */
+    public void ldc(String value) {
+        int index = constPool.addStringEntry(value);
+        ldcInternal(index);
+        advanceFrame(currentFrame.push("Ljava/lang/String;"));
+    }
+
+    /**
+     * Adds an ldc instruction for an int.
+     * 
+     */
+    private void ldcInternal(int index) {
+        if (index > 0xFF) {
+            writeByte(Opcode.LDC_W);
+            writeShort(index);
+            currentOffset += 3;
+        } else {
+            writeByte(Opcode.LDC);
+            writeByte(index);
+            currentOffset += 2;
+        }
+    }
+
+    /**
+     * Adds an ldc2_w instruction for double
+     * 
+     */
+    public void ldc2(double value) {
+        int index = constPool.addDoubleEntry(value);
+        writeByte(Opcode.LDC2_W);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.push("D"));
+    }
+
+    /**
+     * Adds an ldc2_w instruction for long
+     * 
+     */
+    public void ldc2(long value) {
+        int index = constPool.addLongEntry(value);
+        writeByte(Opcode.LDC2_W);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.push("J"));
+    }
+
     public void ldiv() {
         assertTypeOnStack(StackEntryType.LONG, "ldiv requires long on stack");
         assertTypeOnStack(2, StackEntryType.LONG, "ldiv requires long in position 3 on stack");
@@ -1307,6 +1430,52 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.LNEG);
         currentOffset++;
         duplicateFrame();
+    }
+
+    public void loadClass(String className) {
+        int index = constPool.addClassEntry(className);
+        ldcInternal(index);
+        advanceFrame(currentFrame.push("Ljava/lang/Class;"));
+    }
+
+    /**
+     * Loads a java.lang.Class for the given descriptor into the stack.
+     */
+    public void loadType(String descriptor) {
+        if (descriptor.length() != 1) {
+            if (descriptor.startsWith("L") && descriptor.endsWith(";")) {
+                descriptor = descriptor.substring(1, descriptor.length() - 1);
+            }
+            loadClass(descriptor);
+        } else {
+            char type = descriptor.charAt(0);
+            switch (type) {
+                case 'I':
+                    getstatic(Integer.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'J':
+                    getstatic(Long.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'S':
+                    getstatic(Short.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'F':
+                    getstatic(Float.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'D':
+                    getstatic(Double.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'B':
+                    getstatic(Byte.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'C':
+                    getstatic(Character.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                case 'Z':
+                    getstatic(Boolean.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+            }
+        }
     }
 
     public void lookupswitch() {
@@ -1402,6 +1571,15 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop());
     }
 
+    public void newInstruction(String classname) {
+        int classIndex = constPool.addClassEntry(classname);
+        writeByte(Opcode.NEW);
+        writeShort(classIndex);
+        StackEntry entry = new StackEntry(StackEntryType.UNITITIALIZED_OBJECT,classname, currentOffset);
+        currentOffset+=3;
+        advanceFrame(currentFrame.push(entry));
+    }
+
     public void multianewarray(String arrayType, int dimensions) {
         StringBuilder newType = new StringBuilder();
         for (int i = 0; i < dimensions; ++i) {
@@ -1436,128 +1614,6 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop());
     }
 
-    /**
-     * Adds an ldc instruction for an int.
-     *
-     * @param value
-     */
-    public void ldc(int value) {
-        if (value > -2 && value < 6) {
-            iconst(value);
-            return;
-        }
-        int index = constPool.addIntegerEntry(value);
-        ldcInternal(index);
-        advanceFrame(currentFrame.push("I"));
-    }
-
-    /**
-     * Adds an ldc instruction for float
-     *
-     */
-    public void ldc(float value) {
-        int index = constPool.addFloatEntry(value);
-        ldcInternal(index);
-        advanceFrame(currentFrame.push("F"));
-    }
-
-    /**
-     * Adds an ldc instruction for a String
-     * <p>
-     * To load a class literal using ldc use the @{link #loadType(String)} method.
-     *
-     */
-    public void ldc(String value) {
-        int index = constPool.addStringEntry(value);
-        ldcInternal(index);
-        advanceFrame(currentFrame.push("Ljava/lang/String;"));
-    }
-
-    /**
-     * Adds an ldc instruction for an int.
-     *
-     */
-    private void ldcInternal(int index) {
-        if (index > 0xFF) {
-            writeByte(Opcode.LDC_W);
-            writeShort(index);
-            currentOffset += 3;
-        } else {
-            writeByte(Opcode.LDC);
-            writeByte(index);
-            currentOffset += 2;
-        }
-    }
-
-    /**
-     * Adds an ldc2_w instruction for double
-     *
-     */
-    public void ldc2(double value) {
-        int index = constPool.addDoubleEntry(value);
-        writeByte(Opcode.LDC2_W);
-        writeShort(index);
-        currentOffset += 3;
-        advanceFrame(currentFrame.push("D"));
-    }
-
-    /**
-     * Adds an ldc2_w instruction for long
-     *
-     */
-    public void ldc2(long value) {
-        int index = constPool.addLongEntry(value);
-        writeByte(Opcode.LDC2_W);
-        writeShort(index);
-        currentOffset += 3;
-        advanceFrame(currentFrame.push("J"));
-    }
-
-    /**
-     * Loads a java.lang.Class for the given descriptor into the stack.
-     */
-    public void loadType(String descriptor) {
-        if (descriptor.length() != 1) {
-            if (descriptor.startsWith("L") && descriptor.endsWith(";")) {
-                descriptor = descriptor.substring(1, descriptor.length() - 1);
-            }
-            loadClass(descriptor);
-        } else {
-            char type = descriptor.charAt(0);
-            switch (type) {
-                case 'I':
-                    getstatic(Integer.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'J':
-                    getstatic(Long.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'S':
-                    getstatic(Short.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'F':
-                    getstatic(Float.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'D':
-                    getstatic(Double.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'B':
-                    getstatic(Byte.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'C':
-                    getstatic(Character.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-                case 'Z':
-                    getstatic(Boolean.class.getName(), "TYPE", "Ljava/lang/Class;");
-                    break;
-            }
-        }
-    }
-
-    public void loadClass(String className) {
-        int index = constPool.addClassEntry(className);
-        ldcInternal(index);
-        advanceFrame(currentFrame.push("Ljava/lang/Class;"));
-    }
 
     /**
      * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
@@ -1587,7 +1643,7 @@ public class CodeAttribute extends Attribute {
         String returnType = method.getReturnType();
         if (!returnType.equals("V")) {
             if (!getStack().isOnTop(returnType)) {
-                throw new InvalidBytecodeException(returnType + " is not on top of stack");
+                throw new InvalidBytecodeException(returnType + " is not on top of stack. " + getStack().toString());
             }
         }
 

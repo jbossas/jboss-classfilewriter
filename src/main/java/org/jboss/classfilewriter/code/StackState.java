@@ -271,4 +271,34 @@ public class StackState {
         return Collections.unmodifiableList(contents);
     }
 
+    public StackState constructorCall(int initializedValueStackPosition) {
+        StackEntry entry = contents.get(contents.size() - 1 - initializedValueStackPosition);
+        List<StackEntry> newContents = new ArrayList<StackEntry>(contents.size());
+        if (entry.getType() == StackEntryType.UNINITIALIZED_THIS) {
+            for (int i = 0; i < contents.size() - 1 - initializedValueStackPosition; ++i) {
+                StackEntry stackEntry = contents.get(i);
+                if (stackEntry.getType() == StackEntryType.UNINITIALIZED_THIS) {
+                    newContents.add(StackEntry.of(stackEntry.getDescriptor(), constPool));
+                } else {
+                    newContents.add(stackEntry);
+                }
+            }
+            return new StackState(newContents, constPool);
+        } else if (entry.getType() == StackEntryType.UNITITIALIZED_OBJECT) {
+            for (int i = 0; i < contents.size() - 1 - initializedValueStackPosition; ++i) {
+                StackEntry stackEntry = contents.get(i);
+                if (stackEntry.getType() == StackEntryType.UNITITIALIZED_OBJECT
+                        && stackEntry.getNewInstructionLocation() == entry.getNewInstructionLocation()) {
+                    newContents.add(StackEntry.of(stackEntry.getDescriptor(), constPool));
+                } else {
+                    newContents.add(stackEntry);
+                }
+            }
+            return new StackState(newContents, constPool);
+        } else {
+            throw new InvalidBytecodeException("Object at position " + initializedValueStackPosition
+                    + " is not an unitialized object. " + toString());
+        }
+    }
+
 }

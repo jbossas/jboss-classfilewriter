@@ -212,4 +212,14 @@ public class StackFrame {
         return "StackFrame [localVariableState=" + localVariableState + ", stackState=" + stackState + "]";
     }
 
+    /**
+     * marks the value in potition initializedValueStackPosition as initialized. This also pops this value and everything above
+     * it
+     */
+    public StackFrame constructorCall(int initializedValueStackPosition) {
+        StackState ns = stackState.constructorCall(initializedValueStackPosition);
+        return new StackFrame(ns, localVariableState);
+
+    }
+
 }

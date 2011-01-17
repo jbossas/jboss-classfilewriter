@@ -92,7 +92,7 @@ public class StackMapTableAttribute extends Attribute {
         }
         dstream.writeShort(realLocalVars.size());
         for (StackEntry i : realLocalVars) {
-            i.write(dstream, position);
+            i.write(dstream);
         }
         // TODO: this is inefficient, the stack should store the number of TOP values in each frame
         List<StackEntry> realStack = new ArrayList<StackEntry>(value.getStackState().getContents().size());
@@ -103,7 +103,7 @@ public class StackMapTableAttribute extends Attribute {
         }
         dstream.writeShort(realStack.size());
         for (StackEntry i : realStack) {
-            i.write(dstream, position);
+            i.write(dstream);
         }
     }
 

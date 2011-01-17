@@ -88,6 +88,10 @@ public class DescriptorUtils {
         return r;
     }
 
+    public static String getReturnType(String methodDescriptor) {
+        return methodDescriptor.substring(methodDescriptor.lastIndexOf(')') + 1, methodDescriptor.length());
+    }
+
     public static String classToStringRepresentation(Class<?> c) {
         if (void.class.equals(c)) {
             return "V";

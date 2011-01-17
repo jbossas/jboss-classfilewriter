@@ -135,12 +135,12 @@ public class StackEntry {
     /**
      * writes the entry to the stream
      */
-    public void write(DataOutputStream dstream, int position) throws IOException {
+    public void write(DataOutputStream dstream) throws IOException {
         dstream.writeByte(type.ordinal());
         if (type == StackEntryType.OBJECT) {
             dstream.writeShort(descriptorIndex);
         } else if (type == StackEntryType.UNITITIALIZED_OBJECT) {
-            dstream.writeShort(position - newInstructionLocation);
+            dstream.writeShort(newInstructionLocation);
         }
     }
 }

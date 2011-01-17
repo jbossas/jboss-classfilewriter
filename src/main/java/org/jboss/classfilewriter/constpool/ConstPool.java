@@ -171,13 +171,13 @@ public class ConstPool implements WritableEntry {
         return index;
     }
 
-    public short addMethodEntry(String className, String methodName, String fieldType) {
-        final NameAndType nameAndType = new NameAndType(methodName, fieldType);
+    public short addMethodEntry(String className, String methodName, String descriptor) {
+        final NameAndType nameAndType = new NameAndType(methodName, descriptor);
         final MemberInfo method = new MemberInfo(className, nameAndType);
         if (methodLocations.containsKey(method)) {
             return methodLocations.get(method);
         }
-        final short nameAndTypeIndex = addNameAndTypeEntry(methodName, fieldType);
+        final short nameAndTypeIndex = addNameAndTypeEntry(methodName, descriptor);
         final short classIndex = addClassEntry(className);
         final short index = count++;
         constPoolSize++;
