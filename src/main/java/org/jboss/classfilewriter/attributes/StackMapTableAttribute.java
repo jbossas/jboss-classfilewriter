@@ -33,6 +33,7 @@ import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.code.StackEntry;
 import org.jboss.classfilewriter.code.StackEntryType;
 import org.jboss.classfilewriter.code.StackFrame;
+import org.jboss.classfilewriter.code.StackFrameType;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
 
@@ -45,6 +46,8 @@ import org.jboss.classfilewriter.constpool.ConstPool;
 public class StackMapTableAttribute extends Attribute {
 
     private static int FULL_FRAME = 255;
+    private static int SAME_FRAME_EXTENDED = 251;
+
 
     public static final String NAME = "StackMapTable";
 
@@ -69,13 +72,34 @@ public class StackMapTableAttribute extends Attribute {
         for (Entry<Integer, StackFrame> entry : method.getCodeAttribute().getStackFrames().entrySet()) {
             int offset = entry.getKey() - lastPos - 1;
             lastPos = entry.getKey();
-            writeFullFrame(dstream, offset, lastPos, entry.getValue());
+            StackFrame frame = entry.getValue();
+            if (frame.getType() == StackFrameType.SAME_FRAME || frame.getType() == StackFrameType.SAME_FRAME_EXTENDED) {
+                writeSameFrame(dstream, offset, lastPos, frame);
+            } else if (frame.getType() == StackFrameType.SAME_LOCALS_1_STACK && offset < (127 - 64)) {
+                writeSameLocals1Stack(dstream, offset, lastPos, frame);
+            } else {
+                writeFullFrame(dstream, offset, lastPos, entry.getValue());
+            }
         }
 
         // write to dstream
         stream.writeInt(bout.size() + 2);
         stream.writeShort(ca.getStackFrames().size());
         stream.write(bout.toByteArray());
+    }
+
+    private void writeSameLocals1Stack(DataOutputStream dstream, int offset, int lastPos, StackFrame frame) throws IOException {
+        dstream.writeByte(offset + 64);
+        frame.getStackState().getContents().get(0).write(dstream);
+    }
+
+    private void writeSameFrame(DataOutputStream dstream, int offset, int lastPos, StackFrame frame) throws IOException {
+        if (offset > 63) {
+            dstream.writeByte(SAME_FRAME_EXTENDED);
+            dstream.writeShort(offset);
+        } else {
+            dstream.writeByte(offset);
+        }
     }
 
     /**

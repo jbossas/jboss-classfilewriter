@@ -547,7 +547,7 @@ public class CodeAttribute extends Attribute {
         handler.setHandler(currentOffset);
         exceptionTable.add(handler);
         mergeStackFrames(new StackFrame(new StackState(handler.getExceptionType(), constPool), handler.getFrame()
-                .getLocalVariableState()));
+                .getLocalVariableState(), StackFrameType.FULL_FRAME));
     }
 
     public void f2d() {
