@@ -1895,6 +1895,33 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.swap());
     }
 
+    /**
+     * loads all parameters onto the stack.
+     * <p>
+     * If this method is non-static then the parameter at location 0 (i.e. this object) is not pushed.
+     */
+    public void loadMethodParameters() {
+        int index = method.isStatic() ? 0 : 1;
+        for (String type : method.getParameters()) {
+            if (type.length() > 1) {
+                // object or array
+                aload(index);
+            } else if (type.equals("D")) {
+                dload(index);
+                index++;
+            } else if (type.equals("J")) {
+                dload(index);
+                index++;
+            } else if (type.equals("F")) {
+                dload(index);
+                index++;
+            } else {
+                iload(index);
+            }
+            index++;
+        }
+    }
+
     private void writeByte(int n) {
         try {
             data.writeByte(n);
@@ -1915,7 +1942,7 @@ public class CodeAttribute extends Attribute {
      * overwrites a 16 bit value in the already written bytecode data
      *
      */
-    public void overwriteShort(byte[] bytecode, int offset, int value) {
+    private void overwriteShort(byte[] bytecode, int offset, int value) {
         bytecode[offset] = (byte) (value >> 8);
         bytecode[offset + 1] = (byte) (value);
     }

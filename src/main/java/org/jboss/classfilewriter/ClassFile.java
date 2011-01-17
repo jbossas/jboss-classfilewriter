@@ -195,6 +195,9 @@ public class ClassFile implements WritableEntry {
         return define(loader, null);
     }
 
+    /**
+     * Definines the class using the given ClassLoader and ProtectionDomain
+     */
     public Class<?> define(ClassLoader loader, ProtectionDomain domain) {
         try {
             byte[] b = toBytecode();
