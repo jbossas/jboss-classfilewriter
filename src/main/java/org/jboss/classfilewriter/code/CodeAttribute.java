@@ -1557,6 +1557,15 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2());
     }
 
+    /**
+     * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
+     * instruction that is written to the bytecode stream
+     * 
+     */
+    public CodeLocation mark() {
+        return new CodeLocation(currentOffset, currentFrame);
+    }
+
     public void monitorenter() {
         assertTypeOnStack(StackEntryType.OBJECT, "monitorenter requires object reference on stack");
         writeByte(Opcode.MONITORENTER);
@@ -1569,15 +1578,6 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.MONITOREXIT);
         currentOffset++;
         advanceFrame(currentFrame.pop());
-    }
-
-    public void newInstruction(String classname) {
-        int classIndex = constPool.addClassEntry(classname);
-        writeByte(Opcode.NEW);
-        writeShort(classIndex);
-        StackEntry entry = new StackEntry(StackEntryType.UNITITIALIZED_OBJECT,classname, currentOffset);
-        currentOffset+=3;
-        advanceFrame(currentFrame.push(entry));
     }
 
     public void multianewarray(String arrayType, int dimensions) {
@@ -1602,26 +1602,59 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop(dimensions).push(newType.toString()));
     }
 
-    public void putstatic(String className, String field, String descriptor) {
-        if (!getStack().isOnTop(descriptor)) {
-            throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
-                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
-        }
-        int index = constPool.addFieldEntry(className, field, descriptor);
-        writeByte(Opcode.PUTSTATIC);
-        writeShort(index);
+    public void newInstruction(String classname) {
+        int classIndex = constPool.addClassEntry(classname);
+        writeByte(Opcode.NEW);
+        writeShort(classIndex);
+        StackEntry entry = new StackEntry(StackEntryType.UNITITIALIZED_OBJECT, classname, currentOffset);
         currentOffset += 3;
-        advanceFrame(currentFrame.pop());
+        advanceFrame(currentFrame.push(entry));
     }
 
-
     /**
-     * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
-     * instruction that is written to the bytecode stream
-     *
+     * arrayType must be a {@link Class} object that represents a primitive type
      */
-    public CodeLocation mark() {
-        return new CodeLocation(currentOffset, currentFrame);
+    public void newarray(Class<?> arrayType) {
+        assertTypeOnStack(StackEntryType.INT, "newarray requires int on stack");
+        int type = 0;
+        String desc;
+        if (arrayType == boolean.class) {
+            type = Opcode.T_BOOLEAN;
+            desc = "[Z";
+        } else if (arrayType == char.class) {
+            type = Opcode.T_CHAR;
+            desc = "[C";
+        } else if (arrayType == float.class) {
+            type = Opcode.T_FLOAT;
+            desc = "[F";
+        } else if (arrayType == double.class) {
+            type = Opcode.T_DOUBLE;
+            desc = "[D";
+        } else if (arrayType == byte.class) {
+            type = Opcode.T_BYTE;
+            desc = "[B";
+        } else if (arrayType == short.class) {
+            type = Opcode.T_SHORT;
+            desc="[S";
+        } else if (arrayType == int.class) {
+            type = Opcode.T_INT;
+            desc = "[I";
+        } else if (arrayType == long.class) {
+            type = Opcode.T_LONG;
+            desc ="[J";
+        } else {
+            throw new InvalidBytecodeException("Class " + arrayType + " is not a primitive type");
+        }
+        writeByte(Opcode.NEWARRAY);
+        writeByte(type);
+        currentOffset+=2;
+        advanceFrame(currentFrame.replace(desc));
+    }
+
+    public void nop() {
+        writeByte(Opcode.NOP);
+        currentOffset++;
+        duplicateFrame();
     }
 
     public void pop() {
@@ -1634,6 +1667,31 @@ public class CodeAttribute extends Attribute {
         writeByte(Opcode.POP2);
         currentOffset++;
         advanceFrame(currentFrame.pop2());
+    }
+
+    public void putfield(String className, String field, String descriptor) {
+        if (!getStack().isOnTop(descriptor)) {
+            throw new InvalidBytecodeException("Attempting to put wrong type into  field. Field:" + className + "."
+                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
+        }
+        assertTypeOnStack(1, StackEntryType.OBJECT, "expected object in position 2 on stack");
+        int index = constPool.addFieldEntry(className, field, descriptor);
+        writeByte(Opcode.PUTFIELD);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop2());
+    }
+
+    public void putstatic(String className, String field, String descriptor) {
+        if (!getStack().isOnTop(descriptor)) {
+            throw new InvalidBytecodeException("Attempting to put wrong type into static field. Field:" + className + "."
+                    + field + " (" + descriptor + "). Stack State: " + getStack().toString());
+        }
+        int index = constPool.addFieldEntry(className, field, descriptor);
+        writeByte(Opcode.PUTSTATIC);
+        writeShort(index);
+        currentOffset += 3;
+        advanceFrame(currentFrame.pop());
     }
 
     /**

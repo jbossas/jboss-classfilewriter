@@ -19,11 +19,12 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.test.bytecode;
+package org.jboss.classfilewriter.test.bytecode.p;
 
 import junit.framework.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
+import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
 
 public class PutstaticTest {

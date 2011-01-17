@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.test.bytecode.n;
+package org.jboss.classfilewriter.test.bytecode.p;
 
 import junit.framework.Assert;
 
@@ -27,18 +27,18 @@ import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
 
-public class NewTest {
+public class PutfieldTest {
+    public int value = 2;
 
     @Test
-    public void newTest() throws SecurityException, NoSuchMethodException {
-        MethodTester<Object> mt = new MethodTester<Object>(Object.class);
+    public void testPutfield() {
+        MethodTester<Void> mt = new MethodTester<Void>(void.class, PutfieldTest.class);
         CodeAttribute ca = mt.getCodeAttribute();
-        ca.newInstruction("java.lang.Object");
-        ca.dup();
-        ca.invokespecial(Object.class.getConstructor());
+        ca.aload(0);
+        ca.iconst(100);
+        ca.putfield(getClass().getName(), "value", "I");
         ca.returnInstruction();
-        Object val = mt.invoke();
-        Assert.assertNotNull(val);
+        mt.invoke(this);
+        Assert.assertEquals(100, value);
     }
-
 }
