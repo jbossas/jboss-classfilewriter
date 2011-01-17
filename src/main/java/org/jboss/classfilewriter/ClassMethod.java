@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.classfilewriter.attributes.Attribute;
+import org.jboss.classfilewriter.attributes.ExceptionsAttribute;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
@@ -56,6 +57,8 @@ public class ClassMethod implements WritableEntry {
 
     private final CodeAttribute codeAttribute;
 
+    private final ExceptionsAttribute exceptionsAttribute;
+
     private final boolean constructor;
 
     ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ClassFile classFile) {
@@ -79,6 +82,20 @@ public class ClassMethod implements WritableEntry {
             DescriptorUtils.validateDescriptor(param);
         }
         this.constructor = name.equals("<init>");
+        this.exceptionsAttribute = new ExceptionsAttribute(constPool);
+        this.attributes.add(exceptionsAttribute);
+    }
+
+    public void addCheckedExceptions(Class<? extends Exception>... exceptions) {
+        for (Class<? extends Exception> exception : exceptions) {
+            exceptionsAttribute.addExceptionClass(exception.getName());
+        }
+    }
+
+    public void addCheckedExceptions(String... exceptions) {
+        for (String exception : exceptions) {
+            exceptionsAttribute.addExceptionClass(exception);
+        }
     }
 
     public void write(DataOutputStream stream) throws IOException {
@@ -90,6 +107,7 @@ public class ClassMethod implements WritableEntry {
             attribute.write(stream);
         }
     }
+
 
     public CodeAttribute getCodeAttribute() {
         return codeAttribute;

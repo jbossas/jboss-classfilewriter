@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -112,6 +113,21 @@ public class ClassFile implements WritableEntry {
         ClassMethod method = new ClassMethod(name, returnType, parameters, accessFlags, this);
         methods.add(method);
         return method;
+    }
+
+    /**
+     * Adds a method with the same signiture as the given method, including exception types
+     * <p>
+     * TODO: annotations and signiture attribute
+     */
+    public ClassMethod addMethod(Method method) {
+        ClassMethod classMethod = addMethod(method.getModifiers(), method.getName(), DescriptorUtils
+                .classToStringRepresentation(method.getReturnType()), DescriptorUtils.getParameterTypes(method
+                .getParameterTypes()));
+        for (Class<?> e : method.getExceptionTypes()) {
+            classMethod.addCheckedExceptions((Class<? extends Exception>) e);
+        }
+        return classMethod;
     }
 
     public void write(DataOutputStream stream) throws IOException {

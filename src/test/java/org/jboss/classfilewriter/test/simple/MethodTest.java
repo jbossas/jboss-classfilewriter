@@ -49,6 +49,7 @@ public class MethodTest {
         code.pop2();
         code.returnInstruction();
 
+
         FileOutputStream s = new FileOutputStream("/tmp/MyFile1.class");
         s.write(test.toBytecode());
         s.close();
@@ -65,6 +66,19 @@ public class MethodTest {
 
         Method method2 = clazz.getDeclaredMethod("method2");
 
+    }
+
+    @Test
+    public void testExceptionTypes() throws SecurityException, NoSuchMethodException {
+
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "ExceptionTypes", "java/lang/Object");
+        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method", "Ljava/lang/Object;", "I", "J")
+                .addCheckedExceptions(Exception.class);
+        Class<?> clazz = test.define(getClass().getClassLoader());
+
+        Method method = clazz.getDeclaredMethod("method", int.class, long.class);
+        Assert.assertEquals(1, method.getExceptionTypes().length);
+        Assert.assertEquals(Exception.class, method.getExceptionTypes()[0]);
     }
 
     public class AA {
