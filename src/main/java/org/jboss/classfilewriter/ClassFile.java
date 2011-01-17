@@ -24,6 +24,7 @@ package org.jboss.classfilewriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -133,6 +134,20 @@ public class ClassFile implements WritableEntry {
     public ClassMethod addMethod(Method method) {
         ClassMethod classMethod = addMethod(method.getModifiers(), method.getName(), DescriptorUtils
                 .makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
+                .getParameterTypes()));
+        for (Class<?> e : method.getExceptionTypes()) {
+            classMethod.addCheckedExceptions((Class<? extends Exception>) e);
+        }
+        return classMethod;
+    }
+
+    /**
+     * Adds a constructor with the same signiture as the given constrcutor, including exception types
+     * <p>
+     * TODO: annotations and signiture attribute
+     */
+    public ClassMethod addConstructor(Constructor<?> method) {
+        ClassMethod classMethod = addMethod(method.getModifiers(), "<init>", "V", DescriptorUtils.parameterDescriptors(method
                 .getParameterTypes()));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);

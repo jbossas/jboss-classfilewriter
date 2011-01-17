@@ -71,6 +71,9 @@ public class ClassMethod implements WritableEntry {
         this.accessFlags = accessFlags;
         this.nameIndex = constPool.addUtf8Entry(name);
         this.descriptorIndex = constPool.addUtf8Entry(descriptor);
+        this.constructor = name.equals("<init>");
+        this.exceptionsAttribute = new ExceptionsAttribute(constPool);
+        this.attributes.add(exceptionsAttribute);
 
         if (Modifier.isAbstract(accessFlags)) {
             codeAttribute = null;
@@ -81,9 +84,6 @@ public class ClassMethod implements WritableEntry {
         for (String param : this.parameters) {
             DescriptorUtils.validateDescriptor(param);
         }
-        this.constructor = name.equals("<init>");
-        this.exceptionsAttribute = new ExceptionsAttribute(constPool);
-        this.attributes.add(exceptionsAttribute);
     }
 
     public void addCheckedExceptions(Class<? extends Exception>... exceptions) {
