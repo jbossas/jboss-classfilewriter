@@ -1928,7 +1928,7 @@ public class CodeAttribute extends Attribute {
                 dload(index);
                 index++;
             } else if (type.equals("J")) {
-                dload(index);
+                lload(index);
                 index++;
             } else if (type.equals("F")) {
                 dload(index);
