@@ -1811,7 +1811,9 @@ public class CodeAttribute extends Attribute {
             throw new InvalidBytecodeException("Attempting to put wrong type into  field. Field:" + className + "."
                     + field + " (" + descriptor + "). Stack State: " + getStack().toString());
         }
-        assertTypeOnStack(1, StackEntryType.OBJECT, "expected object in position 2 on stack");
+        if (getStack().top_1().getType() != StackEntryType.UNINITIALIZED_THIS) {
+            assertTypeOnStack(1, StackEntryType.OBJECT, "expected object in position 2 on stack");
+        }
         int index = constPool.addFieldEntry(className, field, descriptor);
         writeByte(Opcode.PUTFIELD);
         writeShort(index);
