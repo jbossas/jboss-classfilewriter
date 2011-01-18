@@ -154,9 +154,7 @@ public class CodeAttribute extends Attribute {
 
     public void aastore() {
         assertTypeOnStack(StackEntryType.OBJECT, "aastore requires reference type on top of stack");
-        if (getStack().top_1().getType() != StackEntryType.INT) {
-            throw new InvalidBytecodeException("aastore needs an integer in position 2 on the stack");
-        }
+        assertTypeOnStack(1, StackEntryType.INT, "aastore requires an int on position 2 stack");
         if (!getStack().top_2().getDescriptor().startsWith("[")) {
             throw new InvalidBytecodeException("aaload needs an array in position 3 on the stack");
         }
@@ -719,6 +717,10 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop());
     }
 
+    public void getfield(String className, String field, Class<?> fieldType) {
+        getfield(className, field, DescriptorUtils.makeDescriptor(fieldType));
+    }
+
     public void getfield(String className, String field, String descriptor) {
         assertTypeOnStack(StackEntryType.OBJECT, "getfield requires object on stack");
         int index = constPool.addFieldEntry(className, field, descriptor);
@@ -726,6 +728,10 @@ public class CodeAttribute extends Attribute {
         writeShort(index);
         currentOffset += 3;
         advanceFrame(currentFrame.replace(descriptor));
+    }
+
+    public void getstatic(String className, String field, Class<?> fieldType) {
+        getstatic(className, field, DescriptorUtils.makeDescriptor(fieldType));
     }
 
     public void getstatic(String className, String field, String descriptor) {
@@ -1796,6 +1802,10 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.pop2());
     }
 
+    public void putfield(String className, String field, Class<?> fieldType) {
+        putfield(className, field, DescriptorUtils.makeDescriptor(fieldType));
+    }
+
     public void putfield(String className, String field, String descriptor) {
         if (!getStack().isOnTop(descriptor)) {
             throw new InvalidBytecodeException("Attempting to put wrong type into  field. Field:" + className + "."
@@ -1807,6 +1817,10 @@ public class CodeAttribute extends Attribute {
         writeShort(index);
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
+    }
+
+    public void putstatic(String className, String field, Class<?> fieldType) {
+        putstatic(className, field, DescriptorUtils.makeDescriptor(fieldType));
     }
 
     public void putstatic(String className, String field, String descriptor) {
