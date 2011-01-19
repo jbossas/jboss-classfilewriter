@@ -21,7 +21,6 @@
  */
 package org.jboss.classfilewriter.test.simple;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
@@ -33,64 +32,76 @@ import org.jboss.classfilewriter.DuplicateMemberException;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.junit.Test;
 
-public class MethodTest {
+public class MethodTest
+{
 
-    @Test
-    public void testCreatingMethod() throws SecurityException, NoSuchMethodException, IOException {
+	@Test
+	public void testCreatingMethod() throws SecurityException,
+			NoSuchMethodException, IOException
+	{
 
+		ClassFile test = new ClassFile(getClass().getName().replace('.', '/')
+				+ "GEN", "java/lang/Object");
+		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
+				"method1", "Ljava/lang/Object;", "I", "J");
+		CodeAttribute code = test.addMethod(AccessFlag.of(AccessFlag.PUBLIC),
+				"method2", "V").getCodeAttribute();
+		code.ldc(100);
+		code.iconst(500);
+		code.ldc(1);
+		code.iconst(1);
+		code.pop();
+		code.pop2();
+		code.returnInstruction();
 
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
-        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method1", "Ljava/lang/Object;", "I", "J");
-        CodeAttribute code = test.addMethod(AccessFlag.of(AccessFlag.PUBLIC), "method2", "V").getCodeAttribute();
-        code.ldc(100);
-        code.iconst(500);
-        code.ldc(1);
-        code.iconst(1);
-        code.pop();
-        code.pop2();
-        code.returnInstruction();
+		Class<?> clazz = test.define(getClass().getClassLoader());
+		Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
 
+		Method method1 = clazz.getDeclaredMethod("method1", int.class,
+				long.class);
+		Assert.assertEquals(Object.class, method1.getReturnType());
+		Assert.assertEquals(Object.class, method1.getGenericReturnType());
+		Assert.assertEquals(2, method1.getParameterTypes().length);
+		Assert.assertEquals(int.class, method1.getParameterTypes()[0]);
+		Assert.assertEquals(long.class, method1.getParameterTypes()[1]);
+		Assert.assertEquals("method1", method1.getName());
 
-        FileOutputStream s = new FileOutputStream("/tmp/MyFile1.class");
-        s.write(test.toBytecode());
-        s.close();
-        Class<?> clazz = test.define(getClass().getClassLoader());
-        Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
+		Method method2 = clazz.getDeclaredMethod("method2");
 
-        Method method1 = clazz.getDeclaredMethod("method1", int.class, long.class);
-        Assert.assertEquals(Object.class, method1.getReturnType());
-        Assert.assertEquals(Object.class, method1.getGenericReturnType());
-        Assert.assertEquals(2, method1.getParameterTypes().length);
-        Assert.assertEquals(int.class, method1.getParameterTypes()[0]);
-        Assert.assertEquals(long.class, method1.getParameterTypes()[1]);
-        Assert.assertEquals("method1", method1.getName());
+	}
 
-        Method method2 = clazz.getDeclaredMethod("method2");
+	@Test
+	public void testExceptionTypes() throws SecurityException,
+			NoSuchMethodException
+	{
 
-    }
+		ClassFile test = new ClassFile(getClass().getName().replace('.', '/')
+				+ "ExceptionTypes", "java/lang/Object");
+		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
+				"method", "Ljava/lang/Object;", "I", "J").addCheckedExceptions(
+				Exception.class);
+		Class<?> clazz = test.define(getClass().getClassLoader());
 
-    @Test
-    public void testExceptionTypes() throws SecurityException, NoSuchMethodException {
+		Method method = clazz
+				.getDeclaredMethod("method", int.class, long.class);
+		Assert.assertEquals(1, method.getExceptionTypes().length);
+		Assert.assertEquals(Exception.class, method.getExceptionTypes()[0]);
+	}
 
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "ExceptionTypes", "java/lang/Object");
-        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method", "Ljava/lang/Object;", "I", "J")
-                .addCheckedExceptions(Exception.class);
-        Class<?> clazz = test.define(getClass().getClassLoader());
+	@Test(expected = DuplicateMemberException.class)
+	public void testDuplicateMethod()
+	{
+		ClassFile test = new ClassFile(getClass().getName().replace('.', '/')
+				+ "DuplicateMembers", "java/lang/Object");
+		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
+				"method", "Ljava/lang/Object;", "I", "J");
+		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
+				"method", "Ljava/lang/Object;", "I", "J");
+	}
 
-        Method method = clazz.getDeclaredMethod("method", int.class, long.class);
-        Assert.assertEquals(1, method.getExceptionTypes().length);
-        Assert.assertEquals(Exception.class, method.getExceptionTypes()[0]);
-    }
+	public class AA
+	{
 
-    @Test(expected = DuplicateMemberException.class)
-    public void testDuplicateMethod() {
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "DuplicateMembers", "java/lang/Object");
-        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method", "Ljava/lang/Object;", "I", "J");
-        test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT), "method", "Ljava/lang/Object;", "I", "J");
-    }
-
-    public class AA {
-
-    }
+	}
 
 }
