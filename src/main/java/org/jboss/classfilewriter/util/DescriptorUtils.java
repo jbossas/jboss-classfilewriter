@@ -204,11 +204,11 @@ public class DescriptorUtils {
             throw new RuntimeException("descriptors may not be empty");
         }
         if (descriptor.length() > 1) {
-            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
+            if (descriptor.startsWith("L")) {
                 if (!descriptor.endsWith(";")) {
                     throw new RuntimeException(descriptor + " is not a valid descriptor");
                 }
-            } else {
+            } else if(!descriptor.startsWith("[")) {
                 throw new RuntimeException(descriptor + " is not a valid descriptor");
             }
         } else {
