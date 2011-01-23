@@ -208,7 +208,9 @@ public class DescriptorUtils {
                 if (!descriptor.endsWith(";")) {
                     throw new RuntimeException(descriptor + " is not a valid descriptor");
                 }
-            } else if(!descriptor.startsWith("[")) {
+            } else if (descriptor.startsWith("[")) {
+
+            } else {
                 throw new RuntimeException(descriptor + " is not a valid descriptor");
             }
         } else {

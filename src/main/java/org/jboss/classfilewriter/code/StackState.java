@@ -219,7 +219,6 @@ public class StackState {
         }
         StackEntry t1 = top();
         StackEntry t2 = top_1();
-        StackEntry t3 = top_2();
         StackEntry t4 = top_3();
         if (t2.getType() == StackEntryType.TOP) {
             throw new InvalidBytecodeException("Cannot dup2X2 when second type on stack is wide: " + toString());

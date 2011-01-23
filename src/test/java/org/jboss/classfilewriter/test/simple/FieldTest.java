@@ -33,9 +33,9 @@ import org.jboss.classfilewriter.ClassFile;
 import org.jboss.classfilewriter.DuplicateMemberException;
 import org.junit.Test;
 
-public class FieldTest {
+public class FieldTest<T extends Object, TT extends Object, TTT extends Object> {
 
-    public Map<String, Integer> mapField;
+    public Map<TT, Integer> mapField;
 
     @Test
     public void testCreatingField() throws SecurityException, NoSuchFieldException {

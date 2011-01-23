@@ -2108,9 +2108,9 @@ public class CodeAttribute extends Attribute {
         assertTypeOnStack(1, StackEntryType.INT, name + " requires int in position 2 on stack");
         writeByte(opcode);
         writeShort(location.getLocation() - currentOffset);
-        mergeStackFrames(location.getStackFrame());
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
+        mergeStackFrames(location.getStackFrame());
     }
 
     private BranchEnd addIfIcmp(int opcode, String name) {
@@ -2128,9 +2128,9 @@ public class CodeAttribute extends Attribute {
         assertTypeOnStack(StackEntryType.INT, name + " requires int on stack");
         writeByte(opcode);
         writeShort(location.getLocation() - currentOffset);
-        mergeStackFrames(location.getStackFrame());
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
+        mergeStackFrames(location.getStackFrame());
     }
 
     private BranchEnd addIf(int opcode, String name) {
@@ -2147,9 +2147,9 @@ public class CodeAttribute extends Attribute {
         assertTypeOnStack(StackEntryType.OBJECT, name + " requires reference type on stack");
         writeByte(opcode);
         writeShort(location.getLocation() - currentOffset);
-        mergeStackFrames(location.getStackFrame());
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
+        mergeStackFrames(location.getStackFrame());
     }
 
     private BranchEnd addNullComparison(int opcode, String name) {

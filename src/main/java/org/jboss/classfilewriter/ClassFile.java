@@ -42,7 +42,6 @@ import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 import org.jboss.classfilewriter.util.SignatureBuilder;
 
-
 /**
  *
  * @author Stuart Douglas
@@ -91,7 +90,7 @@ public class ClassFile implements WritableEntry {
         return addField(accessFlags, name, descriptor, null);
     }
 
-    public ClassField addField(int accessFlags,String name, String descriptor,  String signature) {
+    public ClassField addField(int accessFlags, String name, String descriptor, String signature) {
         ClassField field = new ClassField((short) accessFlags, name, descriptor, signature, this, constPool);
         if (fields.contains(field)) {
             throw new DuplicateMemberException("Field  already exists. Field: " + name + " Descriptor:" + signature);
@@ -100,18 +99,16 @@ public class ClassFile implements WritableEntry {
         return field;
     }
 
-    public ClassField addField(int accessFlags,String name, Class<?> type) {
-        return addField(accessFlags,name, DescriptorUtils.makeDescriptor(type));
+    public ClassField addField(int accessFlags, String name, Class<?> type) {
+        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type));
     }
 
-    public ClassField addField( int accessFlags, String name, Class<?> type, Type genericType) {
-        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type),  SignatureBuilder
-                .fieldAttribute(genericType));
+    public ClassField addField(int accessFlags, String name, Class<?> type, Type genericType) {
+        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type), SignatureBuilder.fieldSignature(genericType));
     }
 
     public ClassField addField(Field field) {
-        return addField( (short) field
-                .getModifiers(),field.getName(), field.getType(), field.getGenericType());
+        return addField((short) field.getModifiers(), field.getName(), field.getType(), field.getGenericType());
     }
 
     // methods
@@ -136,8 +133,7 @@ public class ClassFile implements WritableEntry {
      */
     public ClassMethod addMethod(Method method) {
         ClassMethod classMethod = addMethod(method.getModifiers() & (~AccessFlag.ABSTRACT) & (~AccessFlag.NATIVE), method
-                .getName(), DescriptorUtils
-                .makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
+                .getName(), DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                 .getParameterTypes()));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);

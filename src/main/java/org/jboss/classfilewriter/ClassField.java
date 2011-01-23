@@ -30,14 +30,18 @@ import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.SignatureAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
-
+/**
+ * A field in a class
+ *
+ * @author Stuart Douglas
+ * 
+ */
 public class ClassField implements WritableEntry {
 
     private final short accessFlags;
     private final String name;
     private final short nameIndex;
     private final String descriptor;
-
     private final short descriptorIndex;
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 
