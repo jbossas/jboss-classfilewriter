@@ -1607,6 +1607,11 @@ public class CodeAttribute extends Attribute {
                 case 'Z':
                     getstatic(Boolean.class.getName(), "TYPE", "Ljava/lang/Class;");
                     break;
+                case 'V':
+                    getstatic(Void.class.getName(), "TYPE", "Ljava/lang/Class;");
+                    break;
+                default:
+                    throw new InvalidBytecodeException("Unkown primitive type: " + type);
             }
         }
     }
