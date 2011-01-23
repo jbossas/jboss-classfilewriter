@@ -40,7 +40,6 @@ import java.util.Set;
 
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
-import org.jboss.classfilewriter.util.SignatureBuilder;
 
 /**
  *
@@ -104,7 +103,7 @@ public class ClassFile implements WritableEntry {
     }
 
     public ClassField addField(int accessFlags, String name, Class<?> type, Type genericType) {
-        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type), SignatureBuilder.fieldSignature(genericType));
+        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type), null);
     }
 
     public ClassField addField(Field field) {
