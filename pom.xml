@@ -52,7 +52,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <forkMode>once</forkMode>
-                    <argLine>-XX:-FailOverToOldVerifier -Xverify:all</argLine>
+                    <!-- <argLine>-XX:-FailOverToOldVerifier -Xverify:all</argLine>  -->
                 </configuration>
             </plugin>
         </plugins>
