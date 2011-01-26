@@ -53,7 +53,7 @@
 
     <scm>
         <connection>scm:git:git://github.com/jbossas/jboss-classfilewriter.git</connection>
-        <developerConnection>scm:git:git://github.com/jbossas/jboss-classfilewriter.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:jbossas/jboss-classfilewriter.git</developerConnection>
         <url>scm:git:git://github.com/jbossas/jboss-classfilewriter.git</url>
     </scm>
 
