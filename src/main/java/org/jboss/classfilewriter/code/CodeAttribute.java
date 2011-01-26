@@ -71,7 +71,8 @@ public class CodeAttribute extends Attribute {
 
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 
-    private boolean stackMapAttributeValid = true;
+    //disable for now, as this has some issues
+    private boolean stackMapAttributeValid = false;
 
     private final StackMapTableAttribute stackMapTableAttribute;
 
