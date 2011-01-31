@@ -19,41 +19,40 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.attributes;
+package org.jboss.classfilewriter.annotations;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.List;
 
-import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
- * Represents an attribute in a class file
+ * An array annotation value
  * 
  * @author Stuart Douglas
  * 
  */
-public abstract class Attribute implements WritableEntry {
+public class ArrayAnnotationValue extends AnnotationValue {
 
-    private final String name;
-    private final short nameIndex;
-    protected final ConstPool constPool;
+    private final List<AnnotationValue> value;
 
-    public Attribute(String name, final ConstPool constPool) {
-        this.name = name;
-        this.nameIndex = constPool.addUtf8Entry(name);
-        this.constPool = constPool;
+    public ArrayAnnotationValue(ConstPool constPool, String name, List<AnnotationValue> value) {
+        super(constPool, name);
+        this.value = value;
     }
 
-    public void write(DataOutputStream stream) throws IOException {
-        stream.writeShort(nameIndex);
-        writeData(stream);
+    @Override
+    public char getTag() {
+        return '[';
     }
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
-
-    public String getName() {
-        return name;
+    @Override
+    public void writeData(DataOutputStream stream) throws IOException {
+        stream.writeShort(value.size());
+        for (AnnotationValue v : value) {
+            v.write(stream);
+        }
     }
 
 }

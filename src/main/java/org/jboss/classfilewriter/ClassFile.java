@@ -24,6 +24,7 @@ package org.jboss.classfilewriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,6 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jboss.classfilewriter.annotations.AnnotationBuilder;
+import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
+import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
@@ -66,6 +70,10 @@ public class ClassFile implements WritableEntry {
 
     private byte[] bytecode;
 
+    private final List<Attribute> attributes = new ArrayList<Attribute>();
+
+    private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
+
     public ClassFile(String name, String superclass, String... interfaces) {
         this.version = JavaVersions.JAVA_6;
         this.name = name.replace('/', '.'); // store the name in . form
@@ -74,6 +82,8 @@ public class ClassFile implements WritableEntry {
         for (String i : interfaces) {
             this.interfaces.add(i);
         }
+        runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
+        this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
 
     public void addInterface(String iface) {
@@ -107,7 +117,13 @@ public class ClassFile implements WritableEntry {
     }
 
     public ClassField addField(Field field) {
-        return addField((short) field.getModifiers(), field.getName(), field.getType(), field.getGenericType());
+        ClassField classField = addField((short) field.getModifiers(), field.getName(), field.getType(), field.getGenericType());
+        for (Annotation annotation : field.getDeclaredAnnotations()) {
+            classField.getRuntimeVisibleAnnotationsAttribute().addAnnotation(
+                    AnnotationBuilder.createAnnotation(constPool, annotation));
+        }
+        return classField;
+
     }
 
     // methods
@@ -137,6 +153,10 @@ public class ClassFile implements WritableEntry {
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);
         }
+        for (Annotation annotation : method.getDeclaredAnnotations()) {
+            classMethod.getRuntimeVisibleAnnotationsAttribute().addAnnotation(
+                    AnnotationBuilder.createAnnotation(constPool, annotation));
+        }
         return classMethod;
     }
 
@@ -150,6 +170,10 @@ public class ClassFile implements WritableEntry {
                 .getParameterTypes()));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);
+        }
+        for (Annotation annotation : method.getDeclaredAnnotations()) {
+            classMethod.getRuntimeVisibleAnnotationsAttribute().addAnnotation(
+                    AnnotationBuilder.createAnnotation(constPool, annotation));
         }
         return classMethod;
     }
@@ -182,7 +206,10 @@ public class ClassFile implements WritableEntry {
         for (ClassMethod method : methods) {
             method.write(stream);
         }
-        stream.writeShort(0); // attribute count
+        stream.writeShort(attributes.size()); // attribute count
+        for (Attribute attribute : attributes) {
+            attribute.write(stream);
+        }
     }
 
     private static java.lang.reflect.Method defineClass1, defineClass2;
@@ -266,6 +293,10 @@ public class ClassFile implements WritableEntry {
      */
     public String getDescriptor() {
         return 'L' + name + ';';
+    }
+
+    public AnnotationsAttribute getRuntimeVisibleAnnotationsAttribute() {
+        return runtimeVisibleAnnotationsAttribute;
     }
 
 }

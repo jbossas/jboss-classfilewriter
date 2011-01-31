@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.attributes;
+package org.jboss.classfilewriter.annotations;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -28,25 +28,32 @@ import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
- * Represents an attribute in a class file
+ * Represents an annotation name/value pair. This class can also represent a value an an array valued annotation instance, if
+ * the name is null
  * 
  * @author Stuart Douglas
  * 
  */
-public abstract class Attribute implements WritableEntry {
+public abstract class AnnotationValue implements WritableEntry {
 
     private final String name;
-    private final short nameIndex;
-    protected final ConstPool constPool;
 
-    public Attribute(String name, final ConstPool constPool) {
+    private final int nameIndex;
+
+    protected AnnotationValue(ConstPool constPool, String name) {
         this.name = name;
-        this.nameIndex = constPool.addUtf8Entry(name);
-        this.constPool = constPool;
+        if (name != null) {
+            this.nameIndex = constPool.addUtf8Entry(name);
+        } else {
+            this.nameIndex = -1;
+        }
     }
 
     public void write(DataOutputStream stream) throws IOException {
-        stream.writeShort(nameIndex);
+        if (nameIndex != -1) {
+            stream.writeShort(nameIndex);
+        }
+        stream.writeByte(getTag());
         writeData(stream);
     }
 
@@ -56,4 +63,5 @@ public abstract class Attribute implements WritableEntry {
         return name;
     }
 
+    public abstract char getTag();
 }

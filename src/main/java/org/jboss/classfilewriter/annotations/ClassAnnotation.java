@@ -19,41 +19,50 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.attributes;
+package org.jboss.classfilewriter.annotations;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
- * Represents an attribute in a class file
+ * A bytecode representation of a java annotation
+ * 
  * 
  * @author Stuart Douglas
  * 
  */
-public abstract class Attribute implements WritableEntry {
+public class ClassAnnotation implements WritableEntry {
+    private final String type;
 
-    private final String name;
-    private final short nameIndex;
-    protected final ConstPool constPool;
+    private final int typeIndex;
 
-    public Attribute(String name, final ConstPool constPool) {
-        this.name = name;
-        this.nameIndex = constPool.addUtf8Entry(name);
-        this.constPool = constPool;
+    private final List<AnnotationValue> annotationValues;
+
+    public ClassAnnotation(ConstPool constPool, String type, List<AnnotationValue> annotationValues) {
+        this.type = type;
+        this.typeIndex = constPool.addClassEntry(type);
+        this.annotationValues = new ArrayList<AnnotationValue>(annotationValues);
     }
 
     public void write(DataOutputStream stream) throws IOException {
-        stream.writeShort(nameIndex);
-        writeData(stream);
+        stream.writeShort(typeIndex);
+        stream.writeShort(annotationValues.size());
+        for (AnnotationValue value : annotationValues) {
+            value.write(stream);
+        }
     }
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
+    public String getType() {
+        return type;
+    }
 
-    public String getName() {
-        return name;
+    public List<AnnotationValue> getAnnotationValues() {
+        return annotationValues;
     }
 
 }

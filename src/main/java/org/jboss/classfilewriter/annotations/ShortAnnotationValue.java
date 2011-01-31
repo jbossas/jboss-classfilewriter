@@ -19,41 +19,43 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.attributes;
+package org.jboss.classfilewriter.annotations;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
- * Represents an attribute in a class file
+ * short annotation value
  * 
  * @author Stuart Douglas
  * 
  */
-public abstract class Attribute implements WritableEntry {
+public class ShortAnnotationValue extends AnnotationValue {
 
-    private final String name;
-    private final short nameIndex;
-    protected final ConstPool constPool;
+    private final int valueIndex;
 
-    public Attribute(String name, final ConstPool constPool) {
-        this.name = name;
-        this.nameIndex = constPool.addUtf8Entry(name);
-        this.constPool = constPool;
+    private final short value;
+
+    public ShortAnnotationValue(ConstPool constPool, String name, short value) {
+        super(constPool, name);
+        this.value = value;
+        this.valueIndex = constPool.addIntegerEntry(value);
     }
 
-    public void write(DataOutputStream stream) throws IOException {
-        stream.writeShort(nameIndex);
-        writeData(stream);
+    @Override
+    public char getTag() {
+        return 'S';
     }
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
+    @Override
+    public void writeData(DataOutputStream stream) throws IOException {
+        stream.writeShort(valueIndex);
+    }
 
-    public String getName() {
-        return name;
+    public short getValue() {
+        return value;
     }
 
 }

@@ -19,41 +19,42 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.attributes;
+package org.jboss.classfilewriter.annotations;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
- * Represents an attribute in a class file
+ * A class annotation value
  * 
  * @author Stuart Douglas
  * 
  */
-public abstract class Attribute implements WritableEntry {
+public class ClassAnnotationValue extends AnnotationValue {
 
-    private final String name;
-    private final short nameIndex;
-    protected final ConstPool constPool;
+    private final int valueIndex;
 
-    public Attribute(String name, final ConstPool constPool) {
-        this.name = name;
-        this.nameIndex = constPool.addUtf8Entry(name);
-        this.constPool = constPool;
+    public ClassAnnotationValue(ConstPool constPool, String name, Class<?> value) {
+        super(constPool, name);
+        this.valueIndex = constPool.addUtf8Entry(DescriptorUtils.makeDescriptor(value));
     }
 
-    public void write(DataOutputStream stream) throws IOException {
-        stream.writeShort(nameIndex);
-        writeData(stream);
+    public ClassAnnotationValue(ConstPool constPool, String name, String descriptor) {
+        super(constPool, name);
+        this.valueIndex = constPool.addUtf8Entry(descriptor);
     }
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
+    @Override
+    public char getTag() {
+        return 'c';
+    }
 
-    public String getName() {
-        return name;
+    @Override
+    public void writeData(DataOutputStream stream) throws IOException {
+        stream.writeShort(valueIndex);
     }
 
 }

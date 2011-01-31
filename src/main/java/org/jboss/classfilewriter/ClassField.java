@@ -26,13 +26,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.SignatureAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
  * A field in a class
- *
+ * 
  * @author Stuart Douglas
  * 
  */
@@ -47,6 +48,8 @@ public class ClassField implements WritableEntry {
 
     private final ClassFile classFile;
 
+    private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
+
     ClassField(short accessFlags, String name, String descriptor, String signature, ClassFile classFile,
             ConstPool constPool) {
         this.accessFlags = accessFlags;
@@ -58,6 +61,8 @@ public class ClassField implements WritableEntry {
         if(signature != null){
             attributes.add(new SignatureAttribute(constPool, signature));
         }
+        runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
+        this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
 
     public void write(DataOutputStream stream) throws IOException {
@@ -115,5 +120,9 @@ public class ClassField implements WritableEntry {
         } else if (!name.equals(other.name))
             return false;
         return true;
+    }
+
+    public AnnotationsAttribute getRuntimeVisibleAnnotationsAttribute() {
+        return runtimeVisibleAnnotationsAttribute;
     }
 }

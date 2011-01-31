@@ -19,41 +19,25 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.attributes;
+package org.jboss.classfilewriter.test.annotation;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+public class FieldAnnotationClass {
 
-import org.jboss.classfilewriter.WritableEntry;
-import org.jboss.classfilewriter.constpool.ConstPool;
+    @IntValuedAnnotation(value = 10)
+    public String intField;
 
-/**
- * Represents an attribute in a class file
- * 
- * @author Stuart Douglas
- * 
- */
-public abstract class Attribute implements WritableEntry {
+    @ClassValuedAnnotation(String.class)
+    public String classField;
 
-    private final String name;
-    private final short nameIndex;
-    protected final ConstPool constPool;
+    @EnumValuedAnnotation(SimpleEnum.C)
+    public String enumField;
 
-    public Attribute(String name, final ConstPool constPool) {
-        this.name = name;
-        this.nameIndex = constPool.addUtf8Entry(name);
-        this.constPool = constPool;
-    }
+    @AnnotationValuedAnnotation(@IntValuedAnnotation(20))
+    public String annotationField;
 
-    public void write(DataOutputStream stream) throws IOException {
-        stream.writeShort(nameIndex);
-        writeData(stream);
-    }
+    @IntArrayAnnotation( { 1, 2, 3 })
+    public String intArrayField;
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
-
-    public String getName() {
-        return name;
-    }
-
+    @AnnotationArrayValuedAnnotation( { @IntValuedAnnotation(10), @IntValuedAnnotation(20) })
+    public String annotationArrayField;
 }

@@ -27,6 +27,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.ExceptionsAttribute;
 import org.jboss.classfilewriter.code.CodeAttribute;
@@ -61,6 +62,8 @@ public class ClassMethod implements WritableEntry {
 
     private final boolean constructor;
 
+    private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
+
     ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ClassFile classFile) {
         ConstPool constPool = classFile.getConstPool();
         this.classFile = classFile;
@@ -84,6 +87,8 @@ public class ClassMethod implements WritableEntry {
         for (String param : this.parameters) {
             DescriptorUtils.validateDescriptor(param);
         }
+        runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
+        this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
 
     public void addCheckedExceptions(Class<? extends Exception>... exceptions) {
@@ -143,6 +148,10 @@ public class ClassMethod implements WritableEntry {
 
     public ClassFile getClassFile() {
         return classFile;
+    }
+
+    public AnnotationsAttribute getRuntimeVisibleAnnotationsAttribute() {
+        return runtimeVisibleAnnotationsAttribute;
     }
 
     @Override
