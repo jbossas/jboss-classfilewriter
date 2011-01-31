@@ -55,11 +55,11 @@ public class AnnotationTester {
     public static Method testMethodAnnotations(Class<?> clazz, String name) {
         try {
             ClassFile file = new ClassFile(NAME + count++, Object.class.getName());
-            Method method = clazz.getDeclaredMethod(name);
+            Method method = clazz.getDeclaredMethod(name, String.class);
             ClassMethod cmeth = file.addMethod(method);
             cmeth.getCodeAttribute().returnInstruction();
             Class<?> newClass = file.define(clazz.getClassLoader());
-            return newClass.getDeclaredMethod(name);
+            return newClass.getDeclaredMethod(name, String.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

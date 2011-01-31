@@ -157,6 +157,14 @@ public class ClassFile implements WritableEntry {
             classMethod.getRuntimeVisibleAnnotationsAttribute().addAnnotation(
                     AnnotationBuilder.createAnnotation(constPool, annotation));
         }
+        int count = 0;
+        for (Annotation[] parameterAnnotations : method.getParameterAnnotations()) {
+            for (Annotation annotation : parameterAnnotations) {
+                classMethod.getRuntimeVisibleParameterAnnotationsAttribute().addAnnotation(count,
+                        AnnotationBuilder.createAnnotation(constPool, annotation));
+            }
+            count++;
+        }
         return classMethod;
     }
 
@@ -174,6 +182,14 @@ public class ClassFile implements WritableEntry {
         for (Annotation annotation : method.getDeclaredAnnotations()) {
             classMethod.getRuntimeVisibleAnnotationsAttribute().addAnnotation(
                     AnnotationBuilder.createAnnotation(constPool, annotation));
+        }
+        int count = 0;
+        for (Annotation[] parameterAnnotations : method.getParameterAnnotations()) {
+            for (Annotation annotation : parameterAnnotations) {
+                classMethod.getRuntimeVisibleParameterAnnotationsAttribute().addAnnotation(count,
+                        AnnotationBuilder.createAnnotation(constPool, annotation));
+            }
+            count++;
         }
         return classMethod;
     }

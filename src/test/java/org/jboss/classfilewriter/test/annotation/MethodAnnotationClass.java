@@ -24,26 +24,27 @@ package org.jboss.classfilewriter.test.annotation;
 public class MethodAnnotationClass {
 
     @IntValuedAnnotation(value = 10)
-    public void intMethod() {
+    public void intMethod(@IntValuedAnnotation(value = 10) String p) {
     };
 
     @ClassValuedAnnotation(void.class)
-    public void classMethod() {
+    public void classMethod(@ClassValuedAnnotation(void.class) String p) {
     };
 
     @EnumValuedAnnotation(SimpleEnum.C)
-    public void enumMethod() {
+    public void enumMethod(@EnumValuedAnnotation(SimpleEnum.C) String p) {
     };
 
     @AnnotationValuedAnnotation(@IntValuedAnnotation(20))
-    public void annotationMethod() {
+    public void annotationMethod(@AnnotationValuedAnnotation(@IntValuedAnnotation(20)) String p) {
     };
 
     @IntArrayAnnotation( { 1, 2, 3 })
-    public void intArrayMethod() {
+    public void intArrayMethod(@IntArrayAnnotation( { 1, 2, 3 }) String p) {
     };
 
     @AnnotationArrayValuedAnnotation( { @IntValuedAnnotation(10), @IntValuedAnnotation(20) })
-    public void annotationArrayMethod() {
+    public void annotationArrayMethod(
+            @AnnotationArrayValuedAnnotation( { @IntValuedAnnotation(10), @IntValuedAnnotation(20) }) String p) {
     };
 }

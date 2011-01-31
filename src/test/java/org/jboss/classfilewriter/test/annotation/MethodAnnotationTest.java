@@ -34,6 +34,8 @@ public class MethodAnnotationTest {
         Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "intMethod");
         Assert.assertEquals(1, method.getDeclaredAnnotations().length);
         Assert.assertEquals(10, ((IntValuedAnnotation) method.getDeclaredAnnotations()[0]).value());
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(10, ((IntValuedAnnotation) method.getParameterAnnotations()[0][0]).value());
     }
 
     @Test
@@ -41,6 +43,8 @@ public class MethodAnnotationTest {
         Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "classMethod");
         Assert.assertEquals(1, method.getDeclaredAnnotations().length);
         Assert.assertEquals(void.class, ((ClassValuedAnnotation) method.getDeclaredAnnotations()[0]).value());
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(void.class, ((ClassValuedAnnotation) method.getParameterAnnotations()[0][0]).value());
     }
 
     @Test
@@ -48,6 +52,8 @@ public class MethodAnnotationTest {
         Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "enumMethod");
         Assert.assertEquals(1, method.getDeclaredAnnotations().length);
         Assert.assertEquals(SimpleEnum.C, ((EnumValuedAnnotation) method.getDeclaredAnnotations()[0]).value());
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(SimpleEnum.C, ((EnumValuedAnnotation) method.getParameterAnnotations()[0][0]).value());
     }
 
     @Test
@@ -55,6 +61,8 @@ public class MethodAnnotationTest {
         Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "annotationMethod");
         Assert.assertEquals(1, method.getDeclaredAnnotations().length);
         Assert.assertEquals(20, ((AnnotationValuedAnnotation) method.getDeclaredAnnotations()[0]).value().value());
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(20, ((AnnotationValuedAnnotation) method.getParameterAnnotations()[0][0]).value().value());
     }
 
     @Test
@@ -64,6 +72,10 @@ public class MethodAnnotationTest {
         Assert.assertEquals(1, ((IntArrayAnnotation) method.getDeclaredAnnotations()[0]).value()[0]);
         Assert.assertEquals(2, ((IntArrayAnnotation) method.getDeclaredAnnotations()[0]).value()[1]);
         Assert.assertEquals(3, ((IntArrayAnnotation) method.getDeclaredAnnotations()[0]).value()[2]);
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(1, ((IntArrayAnnotation) method.getParameterAnnotations()[0][0]).value()[0]);
+        Assert.assertEquals(2, ((IntArrayAnnotation) method.getParameterAnnotations()[0][0]).value()[1]);
+        Assert.assertEquals(3, ((IntArrayAnnotation) method.getParameterAnnotations()[0][0]).value()[2]);
     }
 
     @Test
@@ -72,6 +84,9 @@ public class MethodAnnotationTest {
         Assert.assertEquals(1, method.getDeclaredAnnotations().length);
         Assert.assertEquals(10, ((AnnotationArrayValuedAnnotation) method.getDeclaredAnnotations()[0]).value()[0].value());
         Assert.assertEquals(20, ((AnnotationArrayValuedAnnotation) method.getDeclaredAnnotations()[0]).value()[1].value());
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(10, ((AnnotationArrayValuedAnnotation) method.getParameterAnnotations()[0][0]).value()[0].value());
+        Assert.assertEquals(20, ((AnnotationArrayValuedAnnotation) method.getParameterAnnotations()[0][0]).value()[1].value());
     }
 
 }

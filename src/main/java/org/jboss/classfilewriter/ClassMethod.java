@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
+import org.jboss.classfilewriter.annotations.ParameterAnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.ExceptionsAttribute;
 import org.jboss.classfilewriter.code.CodeAttribute;
@@ -64,6 +65,8 @@ public class ClassMethod implements WritableEntry {
 
     private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
 
+    private final ParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute;
+
     ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ClassFile classFile) {
         ConstPool constPool = classFile.getConstPool();
         this.classFile = classFile;
@@ -87,8 +90,11 @@ public class ClassMethod implements WritableEntry {
         for (String param : this.parameters) {
             DescriptorUtils.validateDescriptor(param);
         }
-        runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
+        this.runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
+        this.runtimeVisibleParameterAnnotationsAttribute = new ParameterAnnotationsAttribute(
+                ParameterAnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool, parameters.length);
+        this.attributes.add(runtimeVisibleParameterAnnotationsAttribute);
     }
 
     public void addCheckedExceptions(Class<? extends Exception>... exceptions) {
@@ -154,6 +160,10 @@ public class ClassMethod implements WritableEntry {
         return runtimeVisibleAnnotationsAttribute;
     }
 
+    public ParameterAnnotationsAttribute getRuntimeVisibleParameterAnnotationsAttribute() {
+        return runtimeVisibleParameterAnnotationsAttribute;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -187,5 +197,4 @@ public class ClassMethod implements WritableEntry {
             return false;
         return true;
     }
-
 }
