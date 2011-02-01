@@ -35,6 +35,7 @@ import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -313,6 +314,47 @@ public class ClassFile implements WritableEntry {
 
     public AnnotationsAttribute getRuntimeVisibleAnnotationsAttribute() {
         return runtimeVisibleAnnotationsAttribute;
+    }
+
+    /**
+     * Returns the generated class name
+     * 
+     * @return The generated class name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * 
+     * @return The generated superclass name
+     */
+    public String getSuperclass() {
+        return superclass;
+    }
+
+    /**
+     * 
+     * @return The interfaces implemented by this class
+     */
+    public List<String> getInterfaces() {
+        return Collections.unmodifiableList(interfaces);
+    }
+
+    /**
+     * 
+     * @return This class's fields
+     */
+    public Set<ClassField> getFields() {
+        return Collections.unmodifiableSet(fields);
+    }
+
+    /**
+     * 
+     * @return This classes methods
+     */
+    public Set<ClassMethod> getMethods() {
+        return Collections.unmodifiableSet(methods);
     }
 
 }
