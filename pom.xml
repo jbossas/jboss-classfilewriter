@@ -9,7 +9,7 @@
 
     <groupId>org.jboss.classfilewriter</groupId>
     <artifactId>jboss-classfilewriter</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.Alpha2</version>
     <packaging>jar</packaging>
     <description>A bytecode writer that creates .class files at runtime</description>
 
