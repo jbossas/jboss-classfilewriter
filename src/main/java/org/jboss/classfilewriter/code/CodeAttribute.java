@@ -308,6 +308,10 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.replace(className));
     }
 
+    public void checkcast(Class<?> clazz) {
+        checkcast(clazz.getName());
+    }
+
     public void d2f() {
         assertTypeOnStack(StackEntryType.DOUBLE, "d2f requires double on stack");
         writeByte(Opcode.D2F);
@@ -1566,6 +1570,49 @@ public class CodeAttribute extends Attribute {
         duplicateFrame();
     }
 
+    /**
+     * Generates the apprpriate load instruction for the given type
+     * 
+     * @param type The type of variable
+     * @param no local variable number
+     */
+    public void load(Class<?> type, int no) {
+        load(DescriptorUtils.makeDescriptor(type), no);
+    }
+
+    /**
+     * Generates the apprpriate load instruction for the given type
+     * 
+     * @param descriptor The descriptor of the variable
+     * @param no local variable number
+     */
+    public void load(String descriptor, int no) {
+        if (descriptor.length() != 1) {
+            aload(no);
+        } else {
+            char type = descriptor.charAt(0);
+            switch (type) {
+                case 'F':
+                    fload(no);
+                    break;
+                case 'J':
+                    lload(no);
+                    break;
+                case 'D':
+                    dload(no);
+                    break;
+                case 'I':
+                case 'S':
+                case 'B':
+                case 'C':
+                case 'Z':
+                    iload(no);
+                default:
+                    throw new InvalidBytecodeException("Could not load primitive type: " + type);
+            }
+        }
+    }
+
     public void loadClass(String className) {
         int index = constPool.addClassEntry(className);
         ldcInternal(index);
@@ -1748,6 +1795,10 @@ public class CodeAttribute extends Attribute {
         StackEntry entry = new StackEntry(StackEntryType.UNITITIALIZED_OBJECT, classname, currentOffset);
         currentOffset += 3;
         advanceFrame(currentFrame.push(entry));
+    }
+
+    public void newInstruction(Class<?> clazz) {
+        newInstruction(clazz.getName());
     }
 
     /**
