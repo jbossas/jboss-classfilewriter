@@ -1607,6 +1607,7 @@ public class CodeAttribute extends Attribute {
                 case 'C':
                 case 'Z':
                     iload(no);
+                    break;
                 default:
                     throw new InvalidBytecodeException("Could not load primitive type: " + type);
             }
