@@ -120,6 +120,9 @@ public class StackState {
      * pop a non-wide type from the top of the stack
      */
     public StackState pop(int no) {
+        if (no == 0) {
+            return this;
+        }
         if (contents.size() < no) {
             throw new InvalidBytecodeException("cannot pop" + no + ", only " + contents.size() + " on stack " + toString());
         }
