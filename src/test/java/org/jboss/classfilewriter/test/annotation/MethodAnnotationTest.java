@@ -89,4 +89,14 @@ public class MethodAnnotationTest {
         Assert.assertEquals(20, ((AnnotationArrayValuedAnnotation) method.getParameterAnnotations()[0][0]).value()[1].value());
     }
 
+    @Test
+    public void testClassArrayMethodAnnotation() {
+        Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "classArrayMethod");
+        Assert.assertEquals(1, method.getDeclaredAnnotations().length);
+        Assert.assertEquals(String.class, ((ClassArrayValuedAnnotation) method.getDeclaredAnnotations()[0]).value()[0]);
+        Assert.assertEquals(int.class, ((ClassArrayValuedAnnotation) method.getDeclaredAnnotations()[0]).value()[1]);
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals(String.class, ((ClassArrayValuedAnnotation) method.getParameterAnnotations()[0][0]).value()[0]);
+        Assert.assertEquals(int.class, ((ClassArrayValuedAnnotation) method.getParameterAnnotations()[0][0]).value()[1]);
+    }
 }

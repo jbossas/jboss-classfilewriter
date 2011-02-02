@@ -47,4 +47,8 @@ public class MethodAnnotationClass {
     public void annotationArrayMethod(
             @AnnotationArrayValuedAnnotation( { @IntValuedAnnotation(10), @IntValuedAnnotation(20) }) String p) {
     };
+
+    @ClassArrayValuedAnnotation( { String.class, int.class, Object.class })
+    public void classArrayMethod(@ClassArrayValuedAnnotation( { String.class, int.class, Object.class }) String p) {
+    };
 }
