@@ -197,4 +197,9 @@ public class ClassMethod implements WritableEntry {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "ClassMethod: " + name + descriptor;
+    }
 }
