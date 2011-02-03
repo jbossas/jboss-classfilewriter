@@ -1989,7 +1989,7 @@ public class CodeAttribute extends Attribute {
                 lload(index);
                 index++;
             } else if (type.equals("F")) {
-                dload(index);
+                fload(index);
                 index++;
             } else {
                 iload(index);
