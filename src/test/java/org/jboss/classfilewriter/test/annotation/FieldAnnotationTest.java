@@ -21,11 +21,11 @@
  */
 package org.jboss.classfilewriter.test.annotation;
 
-import java.lang.reflect.Field;
-
 import junit.framework.Assert;
-
 import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.TimeUnit;
 
 public class FieldAnnotationTest {
 
@@ -48,6 +48,16 @@ public class FieldAnnotationTest {
         Field field = AnnotationTester.testFieldAnnotations(FieldAnnotationClass.class, "enumField");
         Assert.assertEquals(1, field.getDeclaredAnnotations().length);
         Assert.assertEquals(SimpleEnum.C, ((EnumValuedAnnotation) field.getDeclaredAnnotations()[0]).value());
+    }
+
+    /**
+     * the members of TimeUnit are actually inner classes, and isEnum returns false
+     */
+    @Test
+    public void testTimeUnitEnumFieldAnnotation() {
+        Field field = AnnotationTester.testFieldAnnotations(FieldAnnotationClass.class, "timeUnitField");
+        Assert.assertEquals(1, field.getDeclaredAnnotations().length);
+        Assert.assertEquals(TimeUnit.SECONDS, ((TimeUnitValuedAnnotation) field.getDeclaredAnnotations()[0]).value());
     }
 
     @Test

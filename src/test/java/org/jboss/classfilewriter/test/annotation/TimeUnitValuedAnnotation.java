@@ -21,28 +21,11 @@
  */
 package org.jboss.classfilewriter.test.annotation;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.concurrent.TimeUnit;
 
-public class FieldAnnotationClass {
-
-    @IntValuedAnnotation(value = 10)
-    public String intField;
-
-    @ClassValuedAnnotation(String.class)
-    public String classField;
-
-    @EnumValuedAnnotation(SimpleEnum.C)
-    public String enumField;
-
-    @TimeUnitValuedAnnotation(TimeUnit.SECONDS)
-    public String timeUnitField;
-
-    @AnnotationValuedAnnotation(@IntValuedAnnotation(20))
-    public String annotationField;
-
-    @IntArrayAnnotation( { 1, 2, 3 })
-    public String intArrayField;
-
-    @AnnotationArrayValuedAnnotation( { @IntValuedAnnotation(10), @IntValuedAnnotation(20) })
-    public String annotationArrayField;
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TimeUnitValuedAnnotation {
+    TimeUnit value();
 }

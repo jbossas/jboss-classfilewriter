@@ -21,14 +21,14 @@
  */
 package org.jboss.classfilewriter.annotations;
 
+import org.jboss.classfilewriter.constpool.ConstPool;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
  * Utility class that can be used to contruct annotations and annotation attributes from java {@link Annotation} instances
@@ -78,7 +78,7 @@ public class AnnotationBuilder {
             return new DoubleAnnotationValue(constPool, name, (Double) value);
         } else if (type == Class.class) {
             return new ClassAnnotationValue(constPool, name, (Class<?>) value);
-        } else if (type.isEnum()) {
+        } else if (type.isEnum() || (type.getEnclosingClass() != null && type.getEnclosingClass().isEnum())) {
             return new EnumAnnotationValue(constPool, name, (Enum<?>) value);
         } else if (value instanceof Annotation) {
             return new AnnotationAnnotationValue(constPool, name, createAnnotation(constPool, (Annotation) value));
