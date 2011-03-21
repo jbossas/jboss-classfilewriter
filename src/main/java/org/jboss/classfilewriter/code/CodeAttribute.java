@@ -39,7 +39,9 @@ import org.jboss.classfilewriter.InvalidBytecodeException;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.StackMapTableAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
+import org.jboss.classfilewriter.util.LazySize;
 
 public class CodeAttribute extends Attribute {
 
@@ -103,7 +105,7 @@ public class CodeAttribute extends Attribute {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
 
         if (stackMapAttributeValid) {
             // add the stack map table
@@ -118,13 +120,8 @@ public class CodeAttribute extends Attribute {
         for (Entry<Integer, Integer> e : jumpLocations.entrySet()) {
             overwriteShort(bytecode, e.getKey(), e.getValue());
         }
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
-        for (Attribute attribute : attributes) {
-            attribute.write(dos);
-        }
 
-        stream.writeInt(finalDataBytes.size() + 12 + bos.size() + (exceptionTable.size() * 8)); // attribute length
+        LazySize size = stream.writeSize();
         stream.writeShort(maxStackDepth);
         stream.writeShort(maxLocals);
         stream.writeInt(bytecode.length);
@@ -137,7 +134,10 @@ public class CodeAttribute extends Attribute {
             stream.writeShort(exception.getExceptionIndex());
         }
         stream.writeShort(attributes.size()); // attributes count
-        stream.write(bos.toByteArray());
+        for (Attribute attribute : attributes) {
+            attribute.write(stream);
+        }
+        size.markEnd();;
     }
 
     // -------------------------------------------
@@ -1572,7 +1572,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Generates the apprpriate load instruction for the given type
-     * 
+     *
      * @param type The type of variable
      * @param no local variable number
      */
@@ -1582,7 +1582,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Generates the apprpriate load instruction for the given type
-     * 
+     *
      * @param descriptor The descriptor of the variable
      * @param no local variable number
      */

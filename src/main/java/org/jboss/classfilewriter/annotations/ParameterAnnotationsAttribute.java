@@ -21,8 +21,11 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.attributes.Attribute;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+import org.jboss.classfilewriter.util.LazySize;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -30,14 +33,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jboss.classfilewriter.attributes.Attribute;
-import org.jboss.classfilewriter.constpool.ConstPool;
-
 /**
  * A parameter annotations attribute
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class ParameterAnnotationsAttribute extends Attribute {
 
@@ -66,24 +66,21 @@ public class ParameterAnnotationsAttribute extends Attribute {
 
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
+        LazySize sizeMarker = stream.writeSize();
+        stream.writeByte(noParameters);
         for(int i = 0; i < noParameters; ++ i) {
             if(!annotations.containsKey(i)) {
-                dos.writeShort(0);
+                stream.writeShort(0);
             } else {
                 List<ClassAnnotation> ans = annotations.get(i);
-                dos.writeShort(ans.size());
+                stream.writeShort(ans.size());
                 for (ClassAnnotation annotation : ans) {
-                    annotation.write(dos);
+                    annotation.write(stream);
                 }
             }
         }
-        byte[] data = bos.toByteArray();
-        stream.writeInt(data.length + 1);
-        stream.writeByte(noParameters);
-        stream.write(data);
+        sizeMarker.markEnd();
     }
 
     public void addAnnotation(int parameter, Annotation annotation) {

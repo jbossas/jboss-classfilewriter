@@ -21,18 +21,18 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
+import java.io.IOException;
 
 /**
  * Represents an annotation name/value pair. This class can also represent a value an an array valued annotation instance, if
  * the name is null
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public abstract class AnnotationValue implements WritableEntry {
 
@@ -49,7 +49,7 @@ public abstract class AnnotationValue implements WritableEntry {
         }
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         if (nameIndex != -1) {
             stream.writeShort(nameIndex);
         }
@@ -57,7 +57,7 @@ public abstract class AnnotationValue implements WritableEntry {
         writeData(stream);
     }
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
+    public abstract void writeData(ByteArrayDataOutputStream stream) throws IOException;
 
     public String getName() {
         return name;

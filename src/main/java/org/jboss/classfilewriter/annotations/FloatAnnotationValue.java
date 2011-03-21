@@ -25,12 +25,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 /**
  * A float annotation value
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class FloatAnnotationValue extends AnnotationValue {
 
@@ -50,7 +51,7 @@ public class FloatAnnotationValue extends AnnotationValue {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(valueIndex);
     }
 

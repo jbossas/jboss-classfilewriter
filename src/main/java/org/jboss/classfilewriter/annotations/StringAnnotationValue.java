@@ -21,10 +21,11 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
 import java.io.IOException;
 
-import org.jboss.classfilewriter.constpool.ConstPool;
 /**
  * A string annotation value
  */
@@ -46,7 +47,7 @@ public class StringAnnotationValue extends AnnotationValue {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(valueIndex);
     }
 

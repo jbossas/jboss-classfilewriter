@@ -21,18 +21,18 @@
  */
 package org.jboss.classfilewriter.attributes;
 
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.classfilewriter.constpool.ConstPool;
-
 /**
  * The exceptions attribute, stores the checked exceptions a method is declared to throw
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class ExceptionsAttribute extends Attribute {
 
@@ -55,7 +55,7 @@ public class ExceptionsAttribute extends Attribute {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeInt(2 + exceptionClassIndexes.size() * 2);
         stream.writeShort(exceptionClassIndexes.size());
         for (short i : exceptionClassIndexes) {

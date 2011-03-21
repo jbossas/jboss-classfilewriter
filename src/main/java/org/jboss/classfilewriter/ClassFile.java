@@ -44,6 +44,7 @@ import org.jboss.classfilewriter.annotations.AnnotationBuilder;
 import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
@@ -195,7 +196,7 @@ public class ClassFile implements WritableEntry {
         return classMethod;
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         // first make sure everything we need is in the const pool
         short nameIndex = constPool.addClassEntry(name);
         short superClassIndex = constPool.addClassEntry(superclass);
@@ -288,10 +289,9 @@ public class ClassFile implements WritableEntry {
         // TODO: throw illegal state exception if the class file is modified after writing
         if (bytecode == null) {
             try {
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                DataOutputStream out = new DataOutputStream(bytes);
+                ByteArrayDataOutputStream out = new ByteArrayDataOutputStream();
                 write(out);
-                bytecode = bytes.toByteArray();
+                bytecode = out.getBytes();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -305,7 +305,7 @@ public class ClassFile implements WritableEntry {
 
     /**
      * returns the type descriptor for the class
-     * 
+     *
      * @return
      */
     public String getDescriptor() {
@@ -318,7 +318,7 @@ public class ClassFile implements WritableEntry {
 
     /**
      * Returns the generated class name
-     * 
+     *
      * @return The generated class name
      */
     public String getName() {
@@ -326,7 +326,7 @@ public class ClassFile implements WritableEntry {
     }
 
     /**
-     * 
+     *
      * @return The generated superclass name
      */
     public String getSuperclass() {
@@ -334,7 +334,7 @@ public class ClassFile implements WritableEntry {
     }
 
     /**
-     * 
+     *
      * @return The interfaces implemented by this class
      */
     public List<String> getInterfaces() {
@@ -342,7 +342,7 @@ public class ClassFile implements WritableEntry {
     }
 
     /**
-     * 
+     *
      * @return This class's fields
      */
     public Set<ClassField> getFields() {
@@ -350,7 +350,7 @@ public class ClassFile implements WritableEntry {
     }
 
     /**
-     * 
+     *
      * @return This classes methods
      */
     public Set<ClassMethod> getMethods() {

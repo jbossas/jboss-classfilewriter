@@ -19,44 +19,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.classfilewriter.annotations;
-
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import org.jboss.classfilewriter.constpool.ConstPool;
-import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+package org.jboss.classfilewriter.util;
 
 /**
- * a byte annotation value
+ * Represents a place holder for a size value in a byte array that can be written to later.
  *
  * @author Stuart Douglas
- *
  */
-public class ByteAnnotationValue extends AnnotationValue {
+public interface LazySize {
 
-    private final int valueIndex;
-
-    private final byte value;
-
-    public ByteAnnotationValue(ConstPool constPool, String name, byte value) {
-        super(constPool, name);
-        this.value = value;
-        this.valueIndex = constPool.addIntegerEntry(value);
-    }
-
-    @Override
-    public char getTag() {
-        return 'B';
-    }
-
-    @Override
-    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
-        stream.writeShort(valueIndex);
-    }
-
-    public byte getValue() {
-        return value;
-    }
-
+    void markEnd();
 }

@@ -21,21 +21,21 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.attributes.Attribute;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+import org.jboss.classfilewriter.util.LazySize;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.classfilewriter.attributes.Attribute;
-import org.jboss.classfilewriter.constpool.ConstPool;
-
 /**
  * An annotations attribute
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class AnnotationsAttribute extends Attribute {
 
@@ -62,16 +62,13 @@ public class AnnotationsAttribute extends Attribute {
 
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(bos);
-        for (ClassAnnotation annotation : annotations) {
-            annotation.write(dos);
-        }
-        byte[] data = bos.toByteArray();
-        stream.writeInt(data.length + 2);
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
+        LazySize sizeMarker = stream.writeSize();
         stream.writeShort(annotations.size());
-        stream.write(data);
+        for (ClassAnnotation annotation : annotations) {
+            annotation.write(stream);
+        }
+        sizeMarker.markEnd();
     }
 
     public void addAnnotation(Annotation annotation) {

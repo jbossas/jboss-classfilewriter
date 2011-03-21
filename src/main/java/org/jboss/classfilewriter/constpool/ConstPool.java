@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.jboss.classfilewriter.WritableEntry;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 
 public class ConstPool implements WritableEntry {
@@ -201,7 +202,7 @@ public class ConstPool implements WritableEntry {
         return index;
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(constPoolSize);
         for (Entry<Short, ConstPoolEntry> entry : entries.entrySet()) {
             entry.getValue().write(stream);

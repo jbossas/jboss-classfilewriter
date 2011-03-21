@@ -21,19 +21,19 @@
  */
 package org.jboss.classfilewriter;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.annotations.ParameterAnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.ExceptionsAttribute;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
+
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ClassMethod implements WritableEntry {
@@ -109,7 +109,7 @@ public class ClassMethod implements WritableEntry {
         }
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(accessFlags);
         stream.writeShort(nameIndex);
         stream.writeShort(descriptorIndex);

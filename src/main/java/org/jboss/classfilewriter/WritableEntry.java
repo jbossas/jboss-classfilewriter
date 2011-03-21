@@ -21,15 +21,17 @@
  */
 package org.jboss.classfilewriter;
 
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
- * a part of the class file that knows hows to write itself to a {@link DataOutputStream}
- * 
+ * a part of the class file that knows hows to write itself to a {@link ByteArrayOutputStream}
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public interface WritableEntry {
-    void write(DataOutputStream stream) throws IOException;
+    void write(ByteArrayDataOutputStream stream) throws IOException;
 }

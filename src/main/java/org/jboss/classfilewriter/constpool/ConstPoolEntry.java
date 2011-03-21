@@ -21,15 +21,16 @@
  */
 package org.jboss.classfilewriter.constpool;
 
+import org.jboss.classfilewriter.WritableEntry;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
-
-import org.jboss.classfilewriter.WritableEntry;
 
 
 public abstract class ConstPoolEntry implements WritableEntry {
 
-    public final void write(DataOutputStream stream) throws IOException {
+    public final void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeByte(getType().getTag());
         writeData(stream);
     }

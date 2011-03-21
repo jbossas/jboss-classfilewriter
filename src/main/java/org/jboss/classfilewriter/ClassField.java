@@ -30,12 +30,13 @@ import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.SignatureAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 /**
  * A field in a class
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class ClassField implements WritableEntry {
 
@@ -65,7 +66,7 @@ public class ClassField implements WritableEntry {
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(accessFlags);
         stream.writeShort(nameIndex);
         stream.writeShort(descriptorIndex);

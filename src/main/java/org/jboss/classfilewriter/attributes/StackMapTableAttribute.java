@@ -21,13 +21,6 @@
  */
 package org.jboss.classfilewriter.attributes;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.code.StackEntry;
@@ -35,14 +28,22 @@ import org.jboss.classfilewriter.code.StackEntryType;
 import org.jboss.classfilewriter.code.StackFrame;
 import org.jboss.classfilewriter.code.StackFrameType;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+import org.jboss.classfilewriter.util.LazySize;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * A JDK 6 StackMap sttribute.
- * 
+ *
  *TODO: this will currently fall over if the code length, max locals or max stack is above 65535
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class StackMapTableAttribute extends Attribute {
 
@@ -60,33 +61,31 @@ public class StackMapTableAttribute extends Attribute {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         // as we don't know the size yet we write everything to a byte stream first
         // TODO: make this better
         final CodeAttribute ca = method.getCodeAttribute();
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        DataOutputStream dstream = new DataOutputStream(bout);
         // now we need to write the stack frames.
         // for now we are going to write all frames as full frames
         // TODO: optimise the frame creation
+
+        // write to dstream
+        LazySize size = stream.writeSize();
+        stream.writeShort(ca.getStackFrames().size());
         int lastPos = -1;
         for (Entry<Integer, StackFrame> entry : method.getCodeAttribute().getStackFrames().entrySet()) {
             int offset = entry.getKey() - lastPos - 1;
             lastPos = entry.getKey();
             StackFrame frame = entry.getValue();
             if (frame.getType() == StackFrameType.SAME_FRAME || frame.getType() == StackFrameType.SAME_FRAME_EXTENDED) {
-                writeSameFrame(dstream, offset, lastPos, frame);
+                writeSameFrame(stream, offset, lastPos, frame);
             } else if (frame.getType() == StackFrameType.SAME_LOCALS_1_STACK && offset < (127 - 64)) {
-                writeSameLocals1Stack(dstream, offset, lastPos, frame);
+                writeSameLocals1Stack(stream, offset, lastPos, frame);
             } else {
-                writeFullFrame(dstream, offset, lastPos, entry.getValue());
+                writeFullFrame(stream, offset, lastPos, entry.getValue());
             }
         }
-
-        // write to dstream
-        stream.writeInt(bout.size() + 2);
-        stream.writeShort(ca.getStackFrames().size());
-        stream.write(bout.toByteArray());
+        size.markEnd();
     }
 
     private void writeSameLocals1Stack(DataOutputStream dstream, int offset, int lastPos, StackFrame frame) throws IOException {

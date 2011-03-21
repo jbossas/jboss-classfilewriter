@@ -21,20 +21,20 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.WritableEntry;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.classfilewriter.WritableEntry;
-import org.jboss.classfilewriter.constpool.ConstPool;
-
 /**
  * A bytecode representation of a java annotation
- * 
- * 
+ *
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class ClassAnnotation implements WritableEntry {
     private final String type;
@@ -49,7 +49,7 @@ public class ClassAnnotation implements WritableEntry {
         this.annotationValues = new ArrayList<AnnotationValue>(annotationValues);
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(typeIndex);
         stream.writeShort(annotationValues.size());
         for (AnnotationValue value : annotationValues) {

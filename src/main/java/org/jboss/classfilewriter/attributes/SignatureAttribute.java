@@ -25,6 +25,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 
 public class SignatureAttribute extends Attribute {
@@ -41,7 +42,7 @@ public class SignatureAttribute extends Attribute {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeInt(2); // data length
         stream.writeShort(signatureIndex);
     }

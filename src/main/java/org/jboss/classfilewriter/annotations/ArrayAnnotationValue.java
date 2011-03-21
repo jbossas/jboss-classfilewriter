@@ -26,12 +26,13 @@ import java.io.IOException;
 import java.util.List;
 
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 /**
  * An array annotation value
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public class ArrayAnnotationValue extends AnnotationValue {
 
@@ -48,7 +49,7 @@ public class ArrayAnnotationValue extends AnnotationValue {
     }
 
     @Override
-    public void writeData(DataOutputStream stream) throws IOException {
+    public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(value.size());
         for (AnnotationValue v : value) {
             v.write(stream);

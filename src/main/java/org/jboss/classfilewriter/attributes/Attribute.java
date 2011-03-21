@@ -21,17 +21,17 @@
  */
 package org.jboss.classfilewriter.attributes;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import org.jboss.classfilewriter.WritableEntry;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
+import java.io.IOException;
 
 /**
  * Represents an attribute in a class file
- * 
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public abstract class Attribute implements WritableEntry {
 
@@ -45,12 +45,12 @@ public abstract class Attribute implements WritableEntry {
         this.constPool = constPool;
     }
 
-    public void write(DataOutputStream stream) throws IOException {
+    public void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(nameIndex);
         writeData(stream);
     }
 
-    public abstract void writeData(DataOutputStream stream) throws IOException;
+    public abstract void writeData(ByteArrayDataOutputStream stream) throws IOException;
 
     public String getName() {
         return name;
