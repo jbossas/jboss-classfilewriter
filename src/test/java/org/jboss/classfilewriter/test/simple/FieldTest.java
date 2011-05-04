@@ -21,16 +21,15 @@
  */
 package org.jboss.classfilewriter.test.simple;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Map;
-
 import junit.framework.Assert;
-
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassFile;
 import org.jboss.classfilewriter.DuplicateMemberException;
 import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Map;
 
 public class FieldTest<T extends Object, TT extends Object, TTT extends Object> {
 
@@ -45,7 +44,7 @@ public class FieldTest<T extends Object, TT extends Object, TTT extends Object> 
         test.addField(AccessFlag.PUBLIC, "field1", "I");
         test.addField(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "field2", "Ljava/lang/Object;");
         test.addField(AccessFlag.PUBLIC, "field3", AA.class);
-        test.addField(AccessFlag.PUBLIC, "field4", mapField.getType(), mapField.getGenericType());
+        test.addField(AccessFlag.PUBLIC, "field4", mapField.getType());
 
         Class<?> clazz = test.define(getClass().getClassLoader());
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());

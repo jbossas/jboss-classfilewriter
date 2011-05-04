@@ -25,6 +25,7 @@ import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.annotations.ParameterAnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.ExceptionsAttribute;
+import org.jboss.classfilewriter.attributes.SignatureAttribute;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
@@ -66,6 +67,10 @@ public class ClassMethod implements WritableEntry {
     private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
 
     private final ParameterAnnotationsAttribute runtimeVisibleParameterAnnotationsAttribute;
+
+    private SignatureAttribute signatureAttribute;
+
+    private String signature;
 
     ClassMethod(String name, String returnType, String[] parameters, int accessFlags, ClassFile classFile) {
         ConstPool constPool = classFile.getConstPool();
@@ -110,6 +115,9 @@ public class ClassMethod implements WritableEntry {
     }
 
     public void write(ByteArrayDataOutputStream stream) throws IOException {
+        if(signatureAttribute != null) {
+            attributes.add(signatureAttribute);
+        }
         stream.writeShort(accessFlags);
         stream.writeShort(nameIndex);
         stream.writeShort(descriptorIndex);
@@ -162,6 +170,19 @@ public class ClassMethod implements WritableEntry {
 
     public ParameterAnnotationsAttribute getRuntimeVisibleParameterAnnotationsAttribute() {
         return runtimeVisibleParameterAnnotationsAttribute;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        if(signature == null) {
+            signatureAttribute = null;
+        } else {
+            signatureAttribute = new SignatureAttribute(classFile.getConstPool(), signature);
+        }
+        this.signature = signature;
     }
 
     @Override

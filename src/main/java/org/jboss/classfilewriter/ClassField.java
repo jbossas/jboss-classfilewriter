@@ -21,16 +21,15 @@
  */
 package org.jboss.classfilewriter;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.attributes.SignatureAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A field in a class
@@ -51,7 +50,11 @@ public class ClassField implements WritableEntry {
 
     private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
 
-    ClassField(short accessFlags, String name, String descriptor, String signature, ClassFile classFile,
+    private SignatureAttribute signatureAttribute;
+
+    private String signature;
+
+    ClassField(short accessFlags, String name, String descriptor, ClassFile classFile,
             ConstPool constPool) {
         this.accessFlags = accessFlags;
         this.name = name;
@@ -59,14 +62,14 @@ public class ClassField implements WritableEntry {
         this.classFile = classFile;
         this.nameIndex = constPool.addUtf8Entry(name);
         this.descriptorIndex = constPool.addUtf8Entry(descriptor);
-        if(signature != null){
-            attributes.add(new SignatureAttribute(constPool, signature));
-        }
         runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
 
     public void write(ByteArrayDataOutputStream stream) throws IOException {
+        if(signatureAttribute != null) {
+            attributes.add(signatureAttribute);
+        }
         stream.writeShort(accessFlags);
         stream.writeShort(nameIndex);
         stream.writeShort(descriptorIndex);
@@ -90,6 +93,19 @@ public class ClassField implements WritableEntry {
 
     public ClassFile getClassFile() {
         return classFile;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        if(signature == null) {
+            signatureAttribute = null;
+        } else {
+            signatureAttribute = new SignatureAttribute(classFile.getConstPool(), signature);
+        }
+        this.signature = signature;
     }
 
     @Override

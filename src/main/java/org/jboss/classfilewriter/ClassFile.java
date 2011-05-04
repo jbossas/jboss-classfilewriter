@@ -21,14 +21,18 @@
  */
 package org.jboss.classfilewriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
+import org.jboss.classfilewriter.annotations.AnnotationBuilder;
+import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
+import org.jboss.classfilewriter.attributes.Attribute;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+import org.jboss.classfilewriter.util.DescriptorUtils;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -39,13 +43,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.jboss.classfilewriter.annotations.AnnotationBuilder;
-import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
-import org.jboss.classfilewriter.attributes.Attribute;
-import org.jboss.classfilewriter.constpool.ConstPool;
-import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
-import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
  *
@@ -81,9 +78,7 @@ public class ClassFile implements WritableEntry {
         this.name = name.replace('/', '.'); // store the name in . form
         this.superclass = superclass;
         this.accessFlags = AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC);
-        for (String i : interfaces) {
-            this.interfaces.add(i);
-        }
+        this.interfaces.addAll(Arrays.asList(interfaces));
         runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
@@ -102,11 +97,12 @@ public class ClassFile implements WritableEntry {
     }
 
     public ClassField addField(int accessFlags, String name, String descriptor, String signature) {
-        ClassField field = new ClassField((short) accessFlags, name, descriptor, signature, this, constPool);
+        ClassField field = new ClassField((short) accessFlags, name, descriptor, this, constPool);
         if (fields.contains(field)) {
             throw new DuplicateMemberException("Field  already exists. Field: " + name + " Descriptor:" + signature);
         }
         fields.add(field);
+        field.setSignature(signature);
         return field;
     }
 
@@ -114,12 +110,12 @@ public class ClassFile implements WritableEntry {
         return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type));
     }
 
-    public ClassField addField(int accessFlags, String name, Class<?> type, Type genericType) {
-        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type), null);
+    public ClassField addField(int accessFlags, String name, Class<?> type, String genericSignature) {
+        return addField(accessFlags, name, DescriptorUtils.makeDescriptor(type), genericSignature);
     }
 
     public ClassField addField(Field field) {
-        ClassField classField = addField((short) field.getModifiers(), field.getName(), field.getType(), field.getGenericType());
+        ClassField classField = addField((short) field.getModifiers(), field.getName(), field.getType(), null);
         for (Annotation annotation : field.getDeclaredAnnotations()) {
             classField.getRuntimeVisibleAnnotationsAttribute().addAnnotation(
                     AnnotationBuilder.createAnnotation(constPool, annotation));
