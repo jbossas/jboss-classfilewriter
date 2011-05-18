@@ -857,7 +857,7 @@ public class CodeAttribute extends Attribute {
      * @param value
      */
     public void iconst(int value) {
-        if (value < -1 || value > 6) {
+        if (value < -1 || value > 5) {
             ldc(value);
             return;
         }
