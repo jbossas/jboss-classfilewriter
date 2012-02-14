@@ -21,10 +21,10 @@
  */
 package org.jboss.classfilewriter.annotations;
 
+import java.io.IOException;
+
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
-
-import java.io.IOException;
 
 /**
  * A string annotation value
@@ -38,7 +38,7 @@ public class StringAnnotationValue extends AnnotationValue {
     public StringAnnotationValue(ConstPool constPool, String name, String value) {
         super(constPool, name);
         this.value = value;
-        this.valueIndex = constPool.addStringEntry(value);
+        this.valueIndex = constPool.addUtf8Entry(value);
     }
 
     @Override

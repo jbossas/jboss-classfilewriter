@@ -37,6 +37,14 @@ public class MethodAnnotationTest {
         Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
         Assert.assertEquals(10, ((IntValuedAnnotation) method.getParameterAnnotations()[0][0]).value());
     }
+    @Test
+    public void testStringMethodAnnotation() {
+        Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "stringMethod");
+        Assert.assertEquals(1, method.getDeclaredAnnotations().length);
+        Assert.assertEquals("string", ((StringValuedAnnotation) method.getDeclaredAnnotations()[0]).comment());
+        Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
+        Assert.assertEquals("string", ((StringValuedAnnotation) method.getParameterAnnotations()[0][0]).comment());
+    }
 
     @Test
     public void testClassMethodAnnotation() {
@@ -51,9 +59,9 @@ public class MethodAnnotationTest {
     public void testEnumMethodAnnotation() {
         Method method = AnnotationTester.testMethodAnnotations(MethodAnnotationClass.class, "enumMethod");
         Assert.assertEquals(1, method.getDeclaredAnnotations().length);
-        Assert.assertEquals(SimpleEnum.C, ((EnumValuedAnnotation) method.getDeclaredAnnotations()[0]).value());
+        Assert.assertEquals(EnumValuedAnnotation.SimpleEnum.C, ((EnumValuedAnnotation) method.getDeclaredAnnotations()[0]).value());
         Assert.assertEquals(1, method.getParameterAnnotations()[0].length);
-        Assert.assertEquals(SimpleEnum.C, ((EnumValuedAnnotation) method.getParameterAnnotations()[0][0]).value());
+        Assert.assertEquals(EnumValuedAnnotation.SimpleEnum.C, ((EnumValuedAnnotation) method.getParameterAnnotations()[0][0]).value());
     }
 
     @Test

@@ -31,7 +31,7 @@ public class FieldAnnotationClass {
     @ClassValuedAnnotation(String.class)
     public String classField;
 
-    @EnumValuedAnnotation(SimpleEnum.C)
+    @EnumValuedAnnotation(EnumValuedAnnotation.SimpleEnum.C)
     public String enumField;
 
     @TimeUnitValuedAnnotation(TimeUnit.SECONDS)

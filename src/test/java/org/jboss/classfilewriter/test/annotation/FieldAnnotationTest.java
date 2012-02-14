@@ -21,11 +21,11 @@
  */
 package org.jboss.classfilewriter.test.annotation;
 
-import junit.framework.Assert;
-import org.junit.Test;
-
 import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
+
+import junit.framework.Assert;
+import org.junit.Test;
 
 public class FieldAnnotationTest {
 
@@ -47,7 +47,7 @@ public class FieldAnnotationTest {
     public void testEnumFieldAnnotation() {
         Field field = AnnotationTester.testFieldAnnotations(FieldAnnotationClass.class, "enumField");
         Assert.assertEquals(1, field.getDeclaredAnnotations().length);
-        Assert.assertEquals(SimpleEnum.C, ((EnumValuedAnnotation) field.getDeclaredAnnotations()[0]).value());
+        Assert.assertEquals(EnumValuedAnnotation.SimpleEnum.C, ((EnumValuedAnnotation) field.getDeclaredAnnotations()[0]).value());
     }
 
     /**

@@ -21,36 +21,43 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import org.jboss.classfilewriter.constpool.ConstPool;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jboss.classfilewriter.constpool.ConstPool;
 
 /**
  * Utility class that can be used to contruct annotations and annotation attributes from java {@link Annotation} instances
  *
  * @author Stuart Douglas
- *
  */
 public class AnnotationBuilder {
 
-    public static ClassAnnotation createAnnotation(ConstPool constPool, Annotation annotation) {
+    public static ClassAnnotation createAnnotation(ConstPool constPool, final Annotation annotation) {
         Class<? extends Annotation> annotationType = annotation.annotationType();
         List<AnnotationValue> values = new ArrayList<AnnotationValue>();
         try {
-            for (Method m : annotationType.getDeclaredMethods()) {
-                Object value = m.invoke(annotation);
+            for (final Method m : annotationType.getDeclaredMethods()) {
+                Object value = AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                    @Override
+                    public Object run() throws InvocationTargetException, IllegalAccessException {
+                        m.setAccessible(true);
+                        return m.invoke(annotation);
+                    }
+                });
+
                 values.add(createValue(constPool, m.getName(), value));
             }
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
+        } catch (PrivilegedActionException e) {
             throw new RuntimeException(e);
         }
         return new ClassAnnotation(constPool, annotationType.getName(), values);

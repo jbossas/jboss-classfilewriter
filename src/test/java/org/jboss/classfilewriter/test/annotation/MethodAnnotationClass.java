@@ -31,8 +31,8 @@ public class MethodAnnotationClass {
     public void classMethod(@ClassValuedAnnotation(void.class) String p) {
     };
 
-    @EnumValuedAnnotation(SimpleEnum.C)
-    public void enumMethod(@EnumValuedAnnotation(SimpleEnum.C) String p) {
+    @EnumValuedAnnotation(EnumValuedAnnotation.SimpleEnum.C)
+    public void enumMethod(@EnumValuedAnnotation(EnumValuedAnnotation.SimpleEnum.C) String p) {
     };
 
     @AnnotationValuedAnnotation(@IntValuedAnnotation(20))
@@ -51,4 +51,9 @@ public class MethodAnnotationClass {
     @ClassArrayValuedAnnotation( { String.class, int.class, Object.class })
     public void classArrayMethod(@ClassArrayValuedAnnotation( { String.class, int.class, Object.class }) String p) {
     };
+
+    @StringValuedAnnotation(comment = "string")
+    public void stringMethod(@StringValuedAnnotation(comment = "string") String p ) {
+
+    }
 }
