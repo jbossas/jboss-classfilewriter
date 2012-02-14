@@ -21,6 +21,11 @@
  */
 package org.jboss.classfilewriter;
 
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
 import org.jboss.classfilewriter.annotations.ParameterAnnotationsAttribute;
 import org.jboss.classfilewriter.attributes.Attribute;
@@ -30,11 +35,6 @@ import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
-
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class ClassMethod implements WritableEntry {
@@ -189,7 +189,6 @@ public class ClassMethod implements WritableEntry {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + accessFlags;
         result = prime * result + ((descriptor == null) ? 0 : descriptor.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         return result;
@@ -204,8 +203,6 @@ public class ClassMethod implements WritableEntry {
         if (getClass() != obj.getClass())
             return false;
         ClassMethod other = (ClassMethod) obj;
-        if (accessFlags != other.accessFlags)
-            return false;
         if (descriptor == null) {
             if (other.descriptor != null)
                 return false;
