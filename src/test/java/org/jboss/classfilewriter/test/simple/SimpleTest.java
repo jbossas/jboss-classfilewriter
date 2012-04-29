@@ -38,6 +38,13 @@ public class SimpleTest {
     }
 
     @Test
+    public void testDefaultInterface() {
+        ClassFile test = new ClassFile("DefaultPackageClass", "java/lang/Object");
+        Class<?> clazz = test.define(getClass().getClassLoader());
+        Assert.assertEquals("DefaultPackageClass", clazz.getName());
+    }
+
+    @Test
     public void testAddingInterfaces() {
         ClassFile test = new ClassFile("com/test/BClass", "java/lang/Object", "java/io/Serializable");
         Class<?> clazz = test.define(getClass().getClassLoader());

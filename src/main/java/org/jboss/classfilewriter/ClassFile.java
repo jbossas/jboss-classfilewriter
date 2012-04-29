@@ -21,13 +21,6 @@
  */
 package org.jboss.classfilewriter;
 
-import org.jboss.classfilewriter.annotations.AnnotationBuilder;
-import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
-import org.jboss.classfilewriter.attributes.Attribute;
-import org.jboss.classfilewriter.constpool.ConstPool;
-import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
-import org.jboss.classfilewriter.util.DescriptorUtils;
-
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -43,6 +36,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.jboss.classfilewriter.annotations.AnnotationBuilder;
+import org.jboss.classfilewriter.annotations.AnnotationsAttribute;
+import org.jboss.classfilewriter.attributes.Attribute;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
  *
@@ -258,7 +258,13 @@ public class ClassFile implements WritableEntry {
         try {
             SecurityManager sm = System.getSecurityManager();
             if (sm != null) {
-                String packageName = name.substring(0, name.lastIndexOf('.'));
+                final int index = name.lastIndexOf('.');
+                final String packageName;
+                if(index == -1 ) {
+                    packageName = "";
+                } else {
+                    packageName = name.substring(0, index);
+                }
                 RuntimePermission permission = new RuntimePermission("defineClassInPackage." + packageName);
                 sm.checkPermission(permission);
             }
