@@ -17,13 +17,13 @@
  */
 package org.jboss.classfilewriter.annotations;
 
-import org.jboss.classfilewriter.WritableEntry;
-import org.jboss.classfilewriter.constpool.ConstPool;
-import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jboss.classfilewriter.WritableEntry;
+import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 /**
  * A bytecode representation of a java annotation
@@ -41,7 +41,7 @@ public class ClassAnnotation implements WritableEntry {
 
     public ClassAnnotation(ConstPool constPool, String type, List<AnnotationValue> annotationValues) {
         this.type = type;
-        this.typeIndex = constPool.addClassEntry(type);
+        this.typeIndex = constPool.addUtf8Entry("L" + type.replace(".","/") + ";");
         this.annotationValues = new ArrayList<AnnotationValue>(annotationValues);
     }
 
