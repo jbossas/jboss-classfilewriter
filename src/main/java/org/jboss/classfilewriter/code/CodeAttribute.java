@@ -1684,13 +1684,15 @@ public class CodeAttribute extends Attribute {
             currentOffset++;
         }
 
+        StackFrame frame = currentFrame.pop();
+
         final List<LookupSwitchBuilder.ValuePair> values = new ArrayList<LookupSwitchBuilder.ValuePair>(lookupSwitchBuilder.getValues());
 
         if (lookupSwitchBuilder.getDefaultLocation() != null) {
             writeInt(lookupSwitchBuilder.getDefaultLocation().getLocation() - currentOffset);
         } else {
             writeInt(0);
-            final BranchEnd ret = new BranchEnd(currentOffset, currentFrame, true, startOffset);
+            final BranchEnd ret = new BranchEnd(currentOffset, frame, true, startOffset);
             lookupSwitchBuilder.getDefaultBranchEnd().set(ret);
         }
         writeInt(values.size());
@@ -1704,7 +1706,7 @@ public class CodeAttribute extends Attribute {
                 currentOffset += 4;
             } else {
                 writeInt(0);
-                final BranchEnd ret = new BranchEnd(currentOffset, currentFrame, true, startOffset);
+                final BranchEnd ret = new BranchEnd(currentOffset, frame, true, startOffset);
                 value.getBranchEnd().set(ret);
                 currentOffset += 4;
             }
@@ -2085,6 +2087,16 @@ public class CodeAttribute extends Attribute {
         return new LinkedHashMap<Integer, StackFrame>(stackFrames);
     }
 
+    public void setupFrame(String ... types) {
+        final LocalVariableState localVariableState = new LocalVariableState(constPool, types);
+        final StackFrame f = new StackFrame(new StackState(constPool), localVariableState, StackFrameType.FULL_FRAME);
+        mergeStackFrames(f);
+    }
+
+    public ConstPool getConstPool() {
+        return constPool;
+    }
+
     /**
      * Adds a duplicate of the current frame to the current position.
      * <p/>
@@ -2111,6 +2123,9 @@ public class CodeAttribute extends Attribute {
     }
 
     private LocalVariableState getLocalVars() {
+        if(currentFrame == null) {
+            throw new RuntimeException("No local variable information available, call setupFrame first");
+        }
         return currentFrame.getLocalVariableState();
     }
 

@@ -66,6 +66,15 @@ public class LocalVariableState {
         }
     }
 
+    public LocalVariableState(final ConstPool pool, final String ... entries) {
+        this.constPool = pool;
+        contents = new ArrayList<StackEntry>();
+        for(String c : entries) {
+            final StackEntry entry = StackEntry.of(c, constPool);
+            contents.add(entry);
+        }
+    }
+
     private LocalVariableState(final List<StackEntry> contents, ConstPool constPool) {
         this.contents = contents;
         this.constPool = constPool;
