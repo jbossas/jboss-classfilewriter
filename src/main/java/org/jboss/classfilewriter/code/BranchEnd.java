@@ -26,12 +26,24 @@ package org.jboss.classfilewriter.code;
 public class BranchEnd {
 
     private final int branchLocation;
+    private final int offsetLocation;
 
     private final StackFrame stackFrame;
 
-    BranchEnd(int branchLocation, StackFrame stackFrame) {
+    private final boolean jump32Bit;
+
+    BranchEnd(int branchLocation, StackFrame stackFrame, final int offsetLocation) {
+        this.branchLocation = branchLocation;
+        this.offsetLocation = offsetLocation;
+        this.stackFrame = stackFrame;
+        this.jump32Bit = false;
+    }
+
+    public BranchEnd(final int branchLocation, final StackFrame stackFrame, final boolean jump32Bit, final int offsetLocation) {
         this.branchLocation = branchLocation;
         this.stackFrame = stackFrame;
+        this.jump32Bit = jump32Bit;
+        this.offsetLocation = offsetLocation;
     }
 
     int getBranchLocation() {
@@ -42,4 +54,11 @@ public class BranchEnd {
         return stackFrame;
     }
 
+    boolean isJump32Bit() {
+        return jump32Bit;
+    }
+
+    int getOffsetLocation() {
+        return offsetLocation;
+    }
 }

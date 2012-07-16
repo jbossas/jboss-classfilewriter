@@ -24,6 +24,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,6 +63,14 @@ public class CodeAttribute extends Attribute {
      * need to be overwritten when the final bytecode is written out
      */
     private final Map<Integer, Integer> jumpLocations = new HashMap<Integer, Integer>();
+
+    /**
+     * maps bytecode offsets to jump locations. As these jump locations where not known when the instruction was written they
+     * need to be overwritten when the final bytecode is written out
+     * <p/>
+     * These jump locations are 32 bit offsets,
+     */
+    private final Map<Integer, Integer> jumpLocations32 = new HashMap<Integer, Integer>();
 
     private StackFrame currentFrame;
 
@@ -116,6 +125,9 @@ public class CodeAttribute extends Attribute {
         for (Entry<Integer, Integer> e : jumpLocations.entrySet()) {
             overwriteShort(bytecode, e.getKey(), e.getValue());
         }
+        for (Entry<Integer, Integer> e : jumpLocations32.entrySet()) {
+            overwriteInt(bytecode, e.getKey(), e.getValue());
+        }
 
         LazySize size = stream.writeSize();
         stream.writeShort(maxStackDepth);
@@ -133,7 +145,8 @@ public class CodeAttribute extends Attribute {
         for (Attribute attribute : attributes) {
             attribute.write(stream);
         }
-        size.markEnd();;
+        size.markEnd();
+        ;
     }
 
     // -------------------------------------------
@@ -288,12 +301,15 @@ public class CodeAttribute extends Attribute {
      */
     public void branchEnd(BranchEnd end) {
         mergeStackFrames(end.getStackFrame());
-        jumpLocations.put(end.getBranchLocation() + 1, currentOffset - end.getBranchLocation());
+        if (end.isJump32Bit()) {
+            jumpLocations32.put(end.getBranchLocation(), currentOffset - end.getOffsetLocation());
+        } else {
+            jumpLocations.put(end.getBranchLocation(), currentOffset - end.getOffsetLocation());
+        }
     }
 
     /**
      * Do not use Descriptor format (e.g. Ljava/lang/Object;), the correct form is just java/lang/Object or java.lang.Object
-     *
      */
     public void checkcast(String className) {
         assertTypeOnStack(StackEntryType.OBJECT, "checkcast requires reference type on stack");
@@ -372,9 +388,8 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds the appropriate dconst instruction.
-     * <p>
+     * <p/>
      * note, if the value is not 0 or 1 then ldc is used instead
-     *
      */
     public void dconst(double value) {
         if (value == 0.0) {
@@ -529,7 +544,6 @@ public class CodeAttribute extends Attribute {
     /**
      * Mark the end of an exception handler block. The last instruction that was written will be the last instruction covered by
      * the handler
-     *
      */
     public void exceptionBlockEnd(ExceptionHandler handler) {
         handler.setEnd(currentOffset);
@@ -613,9 +627,8 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds the appropriate fconst instruction.
-     * <p>
+     * <p/>
      * note, if the value is not 0, 1, 2 then ldc is used instead
-     *
      */
     public void fconst(float value) {
         if (value == 0) {
@@ -745,7 +758,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * writes a goto instruction.
-     * <p>
+     * <p/>
      * TODO: implemented goto_w
      */
     public void gotoInstruction(CodeLocation location) {
@@ -758,14 +771,14 @@ public class CodeAttribute extends Attribute {
 
     /**
      * writes a goto instruction.
-     * <p>
+     * <p/>
      * TODO: implemented goto_w
      */
     public BranchEnd gotoInstruction() {
         writeByte(Opcode.GOTO);
         writeShort(0);
         currentOffset += 3;
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
         currentFrame = null;
         return ret;
     }
@@ -847,7 +860,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds the appropriate iconst instruction.
-     * <p>
+     * <p/>
      * note, if the value is not in the range -1 to 5 ldc is written instead
      *
      * @param value
@@ -887,7 +900,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
         return ret;
     }
 
@@ -908,7 +921,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
         return ret;
     }
 
@@ -1025,7 +1038,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Jump to the given location if the reference type on the top of the stack is null.
-     * <p>
+     * <p/>
      * The {@link BranchEnd} returned from this method is used to set the end point to a future point in the bytecode stream
      */
     public BranchEnd ifnull() {
@@ -1126,11 +1139,11 @@ public class CodeAttribute extends Attribute {
         }
         invokespecial(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                        .getParameterTypes()));
+                .getParameterTypes()));
     }
 
     private void invokespecial(String className, String methodName, String descriptor, String returnType,
-            String[] parameterTypes) {
+                               String[] parameterTypes) {
         // TODO: validate stack
         int method = constPool.addMethodEntry(className, methodName, descriptor);
         writeByte(Opcode.INVOKESPECIAL);
@@ -1168,7 +1181,7 @@ public class CodeAttribute extends Attribute {
         }
         invokestatic(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                        .getParameterTypes()));
+                .getParameterTypes()));
     }
 
     private void invokestatic(String className, String methodName, String descriptor, String returnType, String[] parameterTypes) {
@@ -1211,11 +1224,11 @@ public class CodeAttribute extends Attribute {
         }
         invokevirtual(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                        .getParameterTypes()));
+                .getParameterTypes()));
     }
 
     private void invokevirtual(String className, String methodName, String descriptor, String returnType,
-            String[] parameterTypes) {
+                               String[] parameterTypes) {
         // TODO: validate stack
         int method = constPool.addMethodEntry(className, methodName, descriptor);
         writeByte(Opcode.INVOKEVIRTUAL);
@@ -1255,11 +1268,11 @@ public class CodeAttribute extends Attribute {
         }
         invokeinterface(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                        .getParameterTypes()));
+                .getParameterTypes()));
     }
 
     private void invokeinterface(String className, String methodName, String descriptor, String returnType,
-            String[] parameterTypes) {
+                                 String[] parameterTypes) {
         // TODO: validate stack
 
         int pop = 1 + parameterTypes.length;
@@ -1421,9 +1434,8 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds the appropriate lconst instruction.
-     * <p>
+     * <p/>
      * note, if the value is not 0 or 1 then ldc is used instead
-     *
      */
     public void lconst(long value) {
         if (value == 0) {
@@ -1455,7 +1467,6 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for float
-     *
      */
     public void ldc(float value) {
         int index = constPool.addFloatEntry(value);
@@ -1465,9 +1476,8 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for a String
-     * <p>
+     * <p/>
      * To load a class literal using ldc use the @{link #loadType(String)} method.
-     *
      */
     public void ldc(String value) {
         int index = constPool.addStringEntry(value);
@@ -1477,7 +1487,6 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc instruction for an int.
-     *
      */
     private void ldcInternal(int index) {
         if (index > 0xFF) {
@@ -1493,7 +1502,6 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc2_w instruction for double
-     *
      */
     public void ldc2(double value) {
         int index = constPool.addDoubleEntry(value);
@@ -1505,7 +1513,6 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds an ldc2_w instruction for long
-     *
      */
     public void ldc2(long value) {
         int index = constPool.addLongEntry(value);
@@ -1570,7 +1577,7 @@ public class CodeAttribute extends Attribute {
      * Generates the apprpriate load instruction for the given type
      *
      * @param type The type of variable
-     * @param no local variable number
+     * @param no   local variable number
      */
     public void load(Class<?> type, int no) {
         load(DescriptorUtils.makeDescriptor(type), no);
@@ -1580,7 +1587,7 @@ public class CodeAttribute extends Attribute {
      * Generates the apprpriate load instruction for the given type
      *
      * @param descriptor The descriptor of the variable
-     * @param no local variable number
+     * @param no         local variable number
      */
     public void load(String descriptor, int no) {
         if (descriptor.length() != 1) {
@@ -1661,8 +1668,48 @@ public class CodeAttribute extends Attribute {
         }
     }
 
-    public void lookupswitch() {
-        throw new RuntimeException("Not implemented");
+    /**
+     * Adds a lookup switch statement
+     *
+     * @param lookupSwitchBuilder
+     * @return
+     */
+    public void lookupswitch(final LookupSwitchBuilder lookupSwitchBuilder) {
+        assertTypeOnStack(StackEntryType.INT, "lookupswitch requires an int on the stack");
+        writeByte(Opcode.LOOKUPSWITCH);
+        final int startOffset = currentOffset;
+        currentOffset++;
+        while (currentOffset % 4 != 0) {
+            writeByte(0);
+            currentOffset++;
+        }
+
+        final List<LookupSwitchBuilder.ValuePair> values = new ArrayList<LookupSwitchBuilder.ValuePair>(lookupSwitchBuilder.getValues());
+
+        if (lookupSwitchBuilder.getDefaultLocation() != null) {
+            writeInt(lookupSwitchBuilder.getDefaultLocation().getLocation() - currentOffset);
+        } else {
+            writeInt(0);
+            final BranchEnd ret = new BranchEnd(currentOffset, currentFrame, true, startOffset);
+            lookupSwitchBuilder.getDefaultBranchEnd().set(ret);
+        }
+        writeInt(values.size());
+        currentOffset += 8;
+        Collections.sort(values);
+        for (final LookupSwitchBuilder.ValuePair value : values) {
+            writeInt(value.getValue());
+            currentOffset += 4;
+            if (value.getLocation() != null) {
+                writeInt(value.getLocation().getLocation());
+                currentOffset += 4;
+            } else {
+                writeInt(0);
+                final BranchEnd ret = new BranchEnd(currentOffset, currentFrame, true, startOffset);
+                value.getBranchEnd().set(ret);
+                currentOffset += 4;
+            }
+        }
+        currentFrame = null;
     }
 
     public void lor() {
@@ -1743,7 +1790,6 @@ public class CodeAttribute extends Attribute {
     /**
      * Gets the location object for the current location in the bytecode. Jumps to this location will begin executing the next
      * instruction that is written to the bytecode stream
-     *
      */
     public CodeLocation mark() {
         return new CodeLocation(currentOffset, currentFrame);
@@ -1822,19 +1868,19 @@ public class CodeAttribute extends Attribute {
             desc = "[B";
         } else if (arrayType == short.class) {
             type = Opcode.T_SHORT;
-            desc="[S";
+            desc = "[S";
         } else if (arrayType == int.class) {
             type = Opcode.T_INT;
             desc = "[I";
         } else if (arrayType == long.class) {
             type = Opcode.T_LONG;
-            desc ="[J";
+            desc = "[J";
         } else {
             throw new InvalidBytecodeException("Class " + arrayType + " is not a primitive type");
         }
         writeByte(Opcode.NEWARRAY);
         writeByte(type);
-        currentOffset+=2;
+        currentOffset += 2;
         advanceFrame(currentFrame.replace(desc));
     }
 
@@ -1969,7 +2015,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * loads all parameters onto the stack.
-     * <p>
+     * <p/>
      * If this method is non-static then the parameter at location 0 (i.e. this object) is not pushed.
      */
     public void loadMethodParameters() {
@@ -2009,13 +2055,30 @@ public class CodeAttribute extends Attribute {
         }
     }
 
+    private void writeInt(int n) {
+        try {
+            data.writeInt(n);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * overwrites a 16 bit value in the already written bytecode data
-     *
      */
     private void overwriteShort(byte[] bytecode, int offset, int value) {
         bytecode[offset] = (byte) (value >> 8);
         bytecode[offset + 1] = (byte) (value);
+    }
+
+    /**
+     * overwrites a 32 bit value in the already written bytecode data
+     */
+    private void overwriteInt(byte[] bytecode, int offset, int value) {
+        bytecode[offset] = (byte) (value >> 24);
+        bytecode[offset + 1] = (byte) (value >> 16);
+        bytecode[offset + 2] = (byte) (value >> 8);
+        bytecode[offset + 3] = (byte) (value);
     }
 
     public LinkedHashMap<Integer, StackFrame> getStackFrames() {
@@ -2024,7 +2087,7 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Adds a duplicate of the current frame to the current position.
-     * <p>
+     * <p/>
      * currently this just puts the same frame into a different position
      */
     private void duplicateFrame() {
@@ -2093,10 +2156,9 @@ public class CodeAttribute extends Attribute {
 
     /**
      * Merge the stack frames.
-     * <p>
+     * <p/>
      * If the frames are incompatible then an {@link InvalidBytecodeException} is thrown. If the frames cannot be properly
      * merged then the stack map is marked as invalid
-     *
      */
     private void mergeStackFrames(StackFrame stackFrame) {
         if (currentFrame == null) {
@@ -2173,7 +2235,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
         return ret;
     }
 
@@ -2192,7 +2254,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
         return ret;
     }
 
@@ -2211,7 +2273,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
-        BranchEnd ret = new BranchEnd(currentOffset - 3, currentFrame);
+        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
         return ret;
     }
 
