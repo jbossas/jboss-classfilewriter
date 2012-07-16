@@ -2015,6 +2015,46 @@ public class CodeAttribute extends Attribute {
         advanceFrame(currentFrame.swap());
     }
 
+    public void tableswitch(final TableSwitchBuilder builder) {
+        assertTypeOnStack(StackEntryType.INT, "lookupswitch requires an int on the stack");
+        writeByte(Opcode.TABLESWITCH);
+        final int startOffset = currentOffset;
+        currentOffset++;
+        while (currentOffset % 4 != 0) {
+            writeByte(0);
+            currentOffset++;
+        }
+
+        if(builder.getHigh() - builder.getLow() + 1 != builder.getValues().size()) {
+            throw new RuntimeException("high - low + 1 != the number of values in the table");
+        }
+
+        StackFrame frame = currentFrame.pop();
+
+        if (builder.getDefaultLocation() != null) {
+            writeInt(builder.getDefaultLocation().getLocation() - currentOffset);
+        } else {
+            writeInt(0);
+            final BranchEnd ret = new BranchEnd(currentOffset, frame, true, startOffset);
+            builder.getDefaultBranchEnd().set(ret);
+        }
+        writeInt(builder.getLow());
+        writeInt(builder.getHigh());
+        currentOffset += 12;
+        for (final TableSwitchBuilder.ValuePair value : builder.getValues()) {
+            if (value.getLocation() != null) {
+                writeInt(value.getLocation().getLocation());
+                currentOffset += 4;
+            } else {
+                writeInt(0);
+                final BranchEnd ret = new BranchEnd(currentOffset, frame, true, startOffset);
+                value.getBranchEnd().set(ret);
+                currentOffset += 4;
+            }
+        }
+        currentFrame = null;
+    }
+
     /**
      * loads all parameters onto the stack.
      * <p/>
