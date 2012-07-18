@@ -301,10 +301,14 @@ public class CodeAttribute extends Attribute {
      */
     public void branchEnd(BranchEnd end) {
         mergeStackFrames(end.getStackFrame());
+        final int jump = currentOffset - end.getOffsetLocation();
         if (end.isJump32Bit()) {
-            jumpLocations32.put(end.getBranchLocation(), currentOffset - end.getOffsetLocation());
+            jumpLocations32.put(end.getBranchLocation(), jump);
         } else {
-            jumpLocations.put(end.getBranchLocation(), currentOffset - end.getOffsetLocation());
+            if(jump > Short.MAX_VALUE) {
+                throw new RuntimeException(jump + " is to big to be written as a 16 bit value");
+            }
+            jumpLocations.put(end.getBranchLocation(), jump);
         }
     }
 
@@ -2091,6 +2095,9 @@ public class CodeAttribute extends Attribute {
 
     private void writeShort(int n) {
         try {
+            if(n > Short.MAX_VALUE) {
+                throw new RuntimeException(n + " is to big to be written as a 16 bit value");
+            }
             data.writeShort(n);
         } catch (IOException e) {
             throw new RuntimeException(e);
