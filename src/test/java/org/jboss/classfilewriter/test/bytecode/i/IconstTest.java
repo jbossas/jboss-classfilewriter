@@ -43,4 +43,13 @@ public class IconstTest {
         Assert.assertEquals(200, (int) mt.invoke());
     }
 
+    @Test
+    public void testIconstToBipush() {
+        MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
+        CodeAttribute ca = mt.getCodeAttribute();
+        ca.iconst(100);
+        ca.returnInstruction();
+        Assert.assertEquals(100, (int) mt.invoke());
+    }
+
 }

@@ -871,7 +871,14 @@ public class CodeAttribute extends Attribute {
      */
     public void iconst(int value) {
         if (value < -1 || value > 5) {
-            ldc(value);
+            if(value < -128 || value > 127) {
+                ldc(value);
+            } else {
+                writeByte(Opcode.BIPUSH);
+                writeByte(value);
+                currentOffset+=2;
+                advanceFrame(currentFrame.push("I"));
+            }
             return;
         }
         writeByte(Opcode.ICONST_0 + value);
