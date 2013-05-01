@@ -26,12 +26,11 @@ import java.util.List;
  * Utility class for working with method descriptors
  *
  * @author Stuart Douglas
- *
  */
 public class DescriptorUtils {
     /**
      * Changes a class name to the internal form suitable for use in a descriptor string.
-     *
+     * <p/>
      * e.g. java.lang.String => Ljava/lang/String;
      */
     public static String makeDescriptor(String className) {
@@ -99,9 +98,9 @@ public class DescriptorUtils {
                         ++i;
                     }
                     if (arraystart == -1) {
-                        type = methodDescriptor.substring(start, i);
+                        type = methodDescriptor.substring(start, i + 1);
                     } else {
-                        type = methodDescriptor.substring(arraystart, i);
+                        type = methodDescriptor.substring(arraystart, i + 1);
                     }
                 } else {
                     if (arraystart == -1) {
@@ -151,7 +150,6 @@ public class DescriptorUtils {
 
     /**
      * returns true if the descriptor represents a long or a double
-     *
      */
     public static boolean isWide(String descriptor) {
         if (!isPrimitive(descriptor)) {
@@ -166,7 +164,6 @@ public class DescriptorUtils {
 
     /**
      * returns true if the class represents a long or a double
-     *
      */
     public static boolean isWide(Class<?> cls) {
         return cls == double.class || cls == long.class;
