@@ -1,4 +1,4 @@
-package org.jboss.classfilewriter.test;
+package org.jboss.classfilewriter.test.util;
 
 import org.jboss.classfilewriter.util.DescriptorUtils;
 import org.junit.Assert;
