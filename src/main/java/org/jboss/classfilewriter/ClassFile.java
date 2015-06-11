@@ -70,10 +70,14 @@ public class ClassFile implements WritableEntry {
     private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
 
     public ClassFile(String name, String superclass, String... interfaces) {
+        this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, interfaces);
+    }
+
+    public ClassFile(String name, int accessFlags, String superclass, String... interfaces) {
         this.version = JavaVersions.JAVA_6;
         this.name = name.replace('/', '.'); // store the name in . form
         this.superclass = superclass;
-        this.accessFlags = AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC);
+        this.accessFlags = accessFlags;
         this.interfaces.addAll(Arrays.asList(interfaces));
         runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
