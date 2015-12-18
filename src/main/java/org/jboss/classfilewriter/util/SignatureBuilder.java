@@ -78,7 +78,7 @@ public class SignatureBuilder {
             builder.append('.');
             builder.append(clazz.getSimpleName());
         } else {
-            builder.append("L");
+            builder.append('L');
             builder.append(clazz.getName().replace('.', '/'));
         }
 

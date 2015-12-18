@@ -45,7 +45,7 @@ public class DescriptorUtils {
      * e.g. java.lang.String => Ljava/lang/String;
      */
     public static String makeDescriptor(String className) {
-        String repl = className.replace(".", "/");
+        String repl = className.replace('.', '/');
         return 'L' + repl + ';';
     }
 
@@ -69,7 +69,7 @@ public class DescriptorUtils {
         } else if (boolean.class.equals(c)) {
             return BOOLEAN_CLASS_DESCRIPTOR;
         } else if (c.isArray()) {
-            return c.getName().replace(".", "/");
+            return c.getName().replace('.', '/');
         } else
         // normal object
         {
@@ -82,8 +82,8 @@ public class DescriptorUtils {
         for (Class<?> p : c.getParameterTypes()) {
             desc.append(DescriptorUtils.makeDescriptor(p));
         }
-        desc.append(")");
-        desc.append("V");
+        desc.append(')');
+        desc.append('V');
         return desc.toString();
     }
 
@@ -115,7 +115,7 @@ public class DescriptorUtils {
                     }
                 } else {
                     if (arraystart == -1) {
-                        type = methodDescriptor.charAt(i) + "";
+                        type = String.valueOf(methodDescriptor.charAt(i));
                     } else {
                         type = methodDescriptor.substring(arraystart, i + 1);
                     }
@@ -185,7 +185,7 @@ public class DescriptorUtils {
         for (Class<?> p : m.getParameterTypes()) {
             desc.append(DescriptorUtils.makeDescriptor(p));
         }
-        desc.append(")");
+        desc.append(')');
         desc.append(DescriptorUtils.makeDescriptor(m.getReturnType()));
         return desc.toString();
     }
@@ -195,7 +195,7 @@ public class DescriptorUtils {
         for (String p : parameters) {
             desc.append(p);
         }
-        desc.append(")");
+        desc.append(')');
         desc.append(returnType);
         return desc.toString();
     }

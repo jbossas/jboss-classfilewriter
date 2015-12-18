@@ -223,7 +223,7 @@ public final class Signatures {
         } else if (clazz.isArray()) {
             builder.append(encodeClassName(clazz.getName()));
         } else {
-            builder.append(classTypeBase(clazz.getName()) + SEMICOLON);
+            builder.append(classTypeBase(clazz.getName())).append(SEMICOLON);
         }
     }
 
@@ -238,7 +238,7 @@ public final class Signatures {
     }
 
     private static String encodeClassName(String className) {
-        return className.replace(".", "/");
+        return className.replace('.', '/');
     }
 
     @SuppressWarnings("unchecked")

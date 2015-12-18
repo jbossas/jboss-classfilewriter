@@ -216,9 +216,9 @@ public class CodeAttribute extends Attribute {
         writeShort(index);
         currentOffset += 3;
         if (arrayType.startsWith("[")) {
-            advanceFrame(currentFrame.replace("[" + arrayType));
+            advanceFrame(currentFrame.replace('[' + arrayType));
         } else {
-            advanceFrame(currentFrame.replace("[L" + arrayType + ";"));
+            advanceFrame(currentFrame.replace("[L" + arrayType + ';'));
         }
     }
 
@@ -1831,7 +1831,7 @@ public class CodeAttribute extends Attribute {
         if (!arrayType.startsWith("[")) {
             newType.append('L');
             newType.append(arrayType);
-            newType.append(";");
+            newType.append(';');
         } else {
             newType.append(arrayType);
         }

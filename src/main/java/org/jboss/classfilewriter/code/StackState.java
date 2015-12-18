@@ -52,7 +52,7 @@ public class StackState {
 
     public StackState(String exceptionType, ConstPool constPool) {
         this.contents = new ArrayList<StackEntry>(1);
-        this.contents.add(new StackEntry(StackEntryType.OBJECT, "L" + exceptionType + ";", constPool));
+        this.contents.add(new StackEntry(StackEntryType.OBJECT, 'L' + exceptionType + ';', constPool));
         this.constPool = constPool;
     }
 
