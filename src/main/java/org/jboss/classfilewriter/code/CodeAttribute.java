@@ -2246,7 +2246,7 @@ public class CodeAttribute extends Attribute {
             if (mergeEntry.getType() == currentEntry.getType()) {
                 if (mergeEntry.getType() == StackEntryType.OBJECT) {
                     if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
-                        if (!mergeEntry.equals("Ljava/lang/Object;")) {
+                        if (!mergeEntry.getDescriptor().equals("Ljava/lang/Object;")) {
                             // we cannot reliably determine if closes common superclass at this point
                             // so we will just mark the stack map attribute as invalid
                             stackMapAttributeValid = false;
@@ -2272,7 +2272,7 @@ public class CodeAttribute extends Attribute {
             if (mergeEntry.getType() == currentEntry.getType()) {
                 if (mergeEntry.getType() == StackEntryType.OBJECT) {
                     if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
-                        if (!mergeEntry.equals("Ljava/lang/Object;")) {
+                        if (!mergeEntry.getDescriptor().equals("Ljava/lang/Object;")) {
                             // we cannot reliably determine if closes common superclass at this point
                             // so we will just mark the stack map attribute as invalid
                             stackMapAttributeValid = false;
