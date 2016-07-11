@@ -24,12 +24,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.InvalidBytecodeException;
@@ -40,6 +43,7 @@ import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 import org.jboss.classfilewriter.util.LazySize;
 
+@SuppressWarnings("unused")
 public class CodeAttribute extends Attribute {
 
     public static final String NAME = "Code";
@@ -78,12 +82,11 @@ public class CodeAttribute extends Attribute {
 
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 
-    //disable for now, as this has some issues
-    private boolean stackMapAttributeValid = false;
-
     private final StackMapTableAttribute stackMapTableAttribute;
 
     private final List<ExceptionHandler> exceptionTable = new ArrayList<ExceptionHandler>();
+
+    private StackFrameTypeResolver stackFrameTypeResolver;
 
     public CodeAttribute(ClassMethod method, ConstPool constPool) {
         super(NAME, constPool);
@@ -109,11 +112,20 @@ public class CodeAttribute extends Attribute {
         stackMapTableAttribute = new StackMapTableAttribute(method, constPool);
     }
 
+    public StackFrameTypeResolver getStackFrameTypeResolver() {
+        return stackFrameTypeResolver;
+    }
+
+    public void setStackFrameTypeResolver(StackFrameTypeResolver stackFrameTypeResolver) {
+        this.stackFrameTypeResolver = stackFrameTypeResolver;
+    }
+
     @Override
     public void writeData(ByteArrayDataOutputStream stream) throws IOException {
 
-        if (stackMapAttributeValid) {
-            // add the stack map table
+        // add the stack map table
+        if(method.getClassFile().getClassLoader() != null) {
+            //we don't generate the stack map if the class loader is null
             attributes.add(stackMapTableAttribute);
         }
 
@@ -305,7 +317,7 @@ public class CodeAttribute extends Attribute {
         if (end.isJump32Bit()) {
             jumpLocations32.put(end.getBranchLocation(), jump);
         } else {
-            if(jump > Short.MAX_VALUE) {
+            if (jump > Short.MAX_VALUE) {
                 throw new RuntimeException(jump + " is to big to be written as a 16 bit value");
             }
             jumpLocations.put(end.getBranchLocation(), jump);
@@ -540,9 +552,8 @@ public class CodeAttribute extends Attribute {
      * Begin writing an exception handler block. The handler is not actually persisted until exceptionHandler is called.
      */
     public ExceptionHandler exceptionBlockStart(String exceptionType) {
-        ExceptionHandler handler = new ExceptionHandler(currentOffset, constPool.addClassEntry(exceptionType), exceptionType,
+        return new ExceptionHandler(currentOffset, constPool.addClassEntry(exceptionType), exceptionType,
                 currentFrame);
-        return handler;
     }
 
     /**
@@ -871,12 +882,12 @@ public class CodeAttribute extends Attribute {
      */
     public void iconst(int value) {
         if (value < -1 || value > 5) {
-            if(value < -128 || value > 127) {
+            if (value < -128 || value > 127) {
                 ldc(value);
             } else {
                 writeByte(Opcode.BIPUSH);
                 writeByte(value);
-                currentOffset+=2;
+                currentOffset += 2;
                 advanceFrame(currentFrame.push("I"));
             }
             return;
@@ -911,8 +922,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop2());
-        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
-        return ret;
+        return new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
     }
 
     public void ifAcmpne(CodeLocation location) {
@@ -1150,7 +1160,7 @@ public class CodeAttribute extends Attribute {
         }
         invokespecial(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                .getParameterTypes()));
+                        .getParameterTypes()));
     }
 
     private void invokespecial(String className, String methodName, String descriptor, String returnType,
@@ -1192,7 +1202,7 @@ public class CodeAttribute extends Attribute {
         }
         invokestatic(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                .getParameterTypes()));
+                        .getParameterTypes()));
     }
 
     private void invokestatic(String className, String methodName, String descriptor, String returnType, String[] parameterTypes) {
@@ -1235,7 +1245,7 @@ public class CodeAttribute extends Attribute {
         }
         invokevirtual(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                .getParameterTypes()));
+                        .getParameterTypes()));
     }
 
     private void invokevirtual(String className, String methodName, String descriptor, String returnType,
@@ -1279,7 +1289,7 @@ public class CodeAttribute extends Attribute {
         }
         invokeinterface(method.getDeclaringClass().getName(), method.getName(), DescriptorUtils.methodDescriptor(method),
                 DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
-                .getParameterTypes()));
+                        .getParameterTypes()));
     }
 
     private void invokeinterface(String className, String methodName, String descriptor, String returnType,
@@ -1464,7 +1474,7 @@ public class CodeAttribute extends Attribute {
     /**
      * Adds an ldc instruction for an int.
      *
-     * @param value
+     * @param value The value to load
      */
     public void ldc(int value) {
         if (value > -2 && value < 6) {
@@ -1862,7 +1872,7 @@ public class CodeAttribute extends Attribute {
      */
     public void newarray(Class<?> arrayType) {
         assertTypeOnStack(StackEntryType.INT, "newarray requires int on stack");
-        int type = 0;
+        int type;
         String desc;
         if (arrayType == boolean.class) {
             type = Opcode.T_BOOLEAN;
@@ -2036,7 +2046,7 @@ public class CodeAttribute extends Attribute {
             currentOffset++;
         }
 
-        if(builder.getHigh() - builder.getLow() + 1 != builder.getValues().size()) {
+        if (builder.getHigh() - builder.getLow() + 1 != builder.getValues().size()) {
             throw new RuntimeException("high - low + 1 != the number of values in the table");
         }
 
@@ -2102,7 +2112,7 @@ public class CodeAttribute extends Attribute {
 
     private void writeShort(int n) {
         try {
-            if(n > Short.MAX_VALUE) {
+            if (n > Short.MAX_VALUE) {
                 throw new RuntimeException(n + " is to big to be written as a 16 bit value");
             }
             data.writeShort(n);
@@ -2141,7 +2151,7 @@ public class CodeAttribute extends Attribute {
         return new LinkedHashMap<Integer, StackFrame>(stackFrames);
     }
 
-    public void setupFrame(String ... types) {
+    public void setupFrame(String... types) {
         final LocalVariableState localVariableState = new LocalVariableState(constPool, types);
         final StackFrame f = new StackFrame(new StackState(constPool), localVariableState, StackFrameType.FULL_FRAME);
         mergeStackFrames(f);
@@ -2177,7 +2187,7 @@ public class CodeAttribute extends Attribute {
     }
 
     private LocalVariableState getLocalVars() {
-        if(currentFrame == null) {
+        if (currentFrame == null) {
             throw new RuntimeException("No local variable information available, call setupFrame first");
         }
         return currentFrame.getLocalVariableState();
@@ -2246,10 +2256,13 @@ public class CodeAttribute extends Attribute {
             if (mergeEntry.getType() == currentEntry.getType()) {
                 if (mergeEntry.getType() == StackEntryType.OBJECT) {
                     if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
-                        if (!mergeEntry.equals("Ljava/lang/Object;")) {
-                            // we cannot reliably determine if closes common superclass at this point
-                            // so we will just mark the stack map attribute as invalid
-                            stackMapAttributeValid = false;
+                        if(method.getClassFile().getClassLoader() != null) {
+                            String superType = findSuperType(mergeEntry.getDescriptor(), currentEntry.getDescriptor());
+                            if (superType == null) {
+                                throw new InvalidBytecodeException("Could not find common supertype for " + mergeEntry.getDescriptor() + " and " + currentEntry.getDescriptor());
+                            } else if (!superType.equals(currentEntry.getDescriptor())) {
+                                stackFrames.put(currentOffset, currentFrame = currentFrame.mergeStack(i, new StackEntry(StackEntryType.OBJECT, superType, constPool)));
+                            }
                         }
                     }
                 }
@@ -2261,7 +2274,7 @@ public class CodeAttribute extends Attribute {
         }
 
         LocalVariableState currentLocalVariableState = getLocalVars();
-        LocalVariableState mergeLocalVariableState = getLocalVars();
+        LocalVariableState mergeLocalVariableState = stackFrame.getLocalVariableState();
         if (currentLocalVariableState.size() < mergeLocalVariableState.size()) {
             throw new InvalidBytecodeException(
                     "Cannot merge stack frames, merge location has less locals than current location");
@@ -2272,10 +2285,16 @@ public class CodeAttribute extends Attribute {
             if (mergeEntry.getType() == currentEntry.getType()) {
                 if (mergeEntry.getType() == StackEntryType.OBJECT) {
                     if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
-                        if (!mergeEntry.equals("Ljava/lang/Object;")) {
-                            // we cannot reliably determine if closes common superclass at this point
-                            // so we will just mark the stack map attribute as invalid
-                            stackMapAttributeValid = false;
+
+                        if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
+                            if(method.getClassFile().getClassLoader() != null) {
+                                String superType = findSuperType(mergeEntry.getDescriptor(), currentEntry.getDescriptor());
+                                if (superType == null) {
+                                    throw new InvalidBytecodeException("Could not find common supertype for " + mergeEntry.getDescriptor() + " and " + currentEntry.getDescriptor());
+                                } else if (!superType.equals(currentEntry.getDescriptor())) {
+                                    stackFrames.put(currentOffset, currentFrame = currentFrame.mergeLocals(i, new StackEntry(StackEntryType.OBJECT, superType, constPool)));
+                                }
+                            }
                         }
                     }
                 }
@@ -2285,6 +2304,89 @@ public class CodeAttribute extends Attribute {
                         + currentLocalVariableState + " local variable entry " + i + " is invalid");
             }
         }
+    }
+
+    private String findSuperType(String ds1, String ds2) {
+        String d1 = ds1;
+        if(ds1.endsWith(";")) {
+            d1 = ds1.substring(1, ds1.length() - 1).replace("/", ".");
+        }
+        String d2 = ds2;
+        if(ds2.endsWith(";")) {
+            d2 = ds2.substring(1, ds2.length() - 1).replace("/", ".");
+        }
+        if(stackFrameTypeResolver != null) {
+            return stackFrameTypeResolver.resolve(method.getClassFile().getClassLoader(), d1, d2);
+        }
+        //just load the classes for now
+        ClassLoader cl = method.getClassFile().getClassLoader();
+        try {
+            Class<?> c1 = cl.loadClass(d1);
+            Class<?> c2 = cl.loadClass(d2);
+            if (c1.isAssignableFrom(c2)) {
+                return c1.getName();
+            } else if (c2.isAssignableFrom(c1)) {
+                return c2.getName();
+            } else {
+                Class<?> p = c1;
+                while (p != Object.class) {
+                    if(p.isAssignableFrom(c2)) {
+                        return p.getName();
+                    }
+                    p = p.getSuperclass();
+                }
+                p = c2;
+                while (p != Object.class) {
+                    if(p.isAssignableFrom(c1)) {
+                        return p.getName();
+                    }
+                    p = p.getSuperclass();
+                }
+
+                Set<Class<?>> s1 = getAllSuperclassesAndInterface(c1, new HashSet<Class<?>>());
+                Set<Class<?>> s2 = getAllSuperclassesAndInterface(c2, new HashSet<Class<?>>());
+                leavesOnly(s1);
+                leavesOnly(s2);
+                Set<Class<?>> interfaces = new HashSet<Class<?>>();
+                interfaces.addAll(s1);
+                interfaces.addAll(s2);
+                interfaces.remove(c1);
+                interfaces.remove(c2);
+                if(interfaces.size() == 1) {
+                    return interfaces.iterator().next().getName();
+                } else if(interfaces.size() > 1) {
+                    throw new RuntimeException("Could not resolve common superclass for " + d1 + " and " + d2);
+                } else {
+                    return Object.class.getName();
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    private void leavesOnly(Set<Class<?>> s2) {
+        List<Class<?>> keys = new ArrayList<Class<?>>(s2);
+        for(Class<?> key : keys) {
+            for(Class<?> content : s2) {
+                if(key == content) {
+                    continue;
+                }
+                if(key.isAssignableFrom(content)) {
+                    s2.remove(key);
+                    break;
+                }
+            }
+        }
+    }
+
+    private Set<Class<?>> getAllSuperclassesAndInterface(Class<?> c, Set<Class<?>> set) {
+        set.addAll(Arrays.asList(c.getInterfaces()));
+        set.add(c);
+        if(c.getSuperclass() != null) {
+            getAllSuperclassesAndInterface(c.getSuperclass(), set);
+        }
+        return set;
     }
 
     private void addIfIcmp(CodeLocation location, int opcode, String name) {
@@ -2323,8 +2425,7 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
-        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
-        return ret;
+        return new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
     }
 
     private void addNullComparison(CodeLocation location, int opcode, String name) {
@@ -2342,8 +2443,13 @@ public class CodeAttribute extends Attribute {
         writeShort(0);
         currentOffset += 3;
         advanceFrame(currentFrame.pop());
-        BranchEnd ret = new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
-        return ret;
+        return new BranchEnd(currentOffset - 2, currentFrame, currentOffset - 3);
     }
 
+    /**
+     * Interface that can be used to override the type merging process when merging stack frames
+     */
+    public interface StackFrameTypeResolver {
+        String resolve(ClassLoader classLoader, String type1, String type2);
+    }
 }

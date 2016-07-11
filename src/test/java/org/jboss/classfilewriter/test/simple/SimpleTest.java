@@ -28,22 +28,22 @@ public class SimpleTest {
 
     @Test
     public void simpleTest() {
-        ClassFile test = new ClassFile("com/test/AClass", "java/lang/Object");
-        Class<?> clazz = test.define(getClass().getClassLoader());
+        ClassFile test = new ClassFile("com/test/AClass", "java/lang/Object", getClass().getClassLoader());
+        Class<?> clazz = test.define();
         Assert.assertEquals("com.test.AClass", clazz.getName());
     }
 
     @Test
     public void testDefaultInterface() {
-        ClassFile test = new ClassFile("DefaultPackageClass", "java/lang/Object");
-        Class<?> clazz = test.define(getClass().getClassLoader());
+        ClassFile test = new ClassFile("DefaultPackageClass", "java/lang/Object", getClass().getClassLoader());
+        Class<?> clazz = test.define();
         Assert.assertEquals("DefaultPackageClass", clazz.getName());
     }
 
     @Test
     public void testAddingInterfaces() {
-        ClassFile test = new ClassFile("com/test/BClass", "java/lang/Object", "java/io/Serializable");
-        Class<?> clazz = test.define(getClass().getClassLoader());
+        ClassFile test = new ClassFile("com/test/BClass", "java/lang/Object", getClass().getClassLoader(), "java/io/Serializable");
+        Class<?> clazz = test.define();
         Assert.assertEquals("com.test.BClass", clazz.getName());
         Assert.assertTrue(Serializable.class.isAssignableFrom(clazz));
         Assert.assertEquals(1, clazz.getInterfaces().length);

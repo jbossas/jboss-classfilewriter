@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassFile;
 import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.JavaVersions;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
@@ -44,7 +45,7 @@ public class MethodTester<T> {
     private Method createdMethod;
 
     public MethodTester(Class<T> returnType, Class<?>... params) {
-        ClassFile file = new ClassFile("org.jboss.classwriter.test.GeneratedClass" + methodNo++, "java.lang.Object");
+        ClassFile file = new ClassFile("org.jboss.classwriter.test.GeneratedClass" + methodNo++, AccessFlag.PUBLIC, "java.lang.Object", JavaVersions.JAVA_7, getClass().getClassLoader());
         String[] nparams = new String[params.length];
         for(int i = 0; i < params.length;++i){
             nparams[i] = DescriptorUtils.makeDescriptor(params[i]);
@@ -81,7 +82,7 @@ public class MethodTester<T> {
 
     private void create() {
         created = true;
-        Class<?> clazz = method.getClassFile().define(getClass().getClassLoader());
+        Class<?> clazz = method.getClassFile().define();
         for (Method i : clazz.getDeclaredMethods()) {
             if (i.getName().equals("method")) {
                 createdMethod = i;

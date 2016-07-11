@@ -30,9 +30,9 @@ public class FieldSignatureTest<Y> {
 
     @Test
     public void fieldSignatureTest() throws SecurityException, NoSuchFieldException {
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object", getClass().getClassLoader());
         test.addField(AccessFlag.PUBLIC, "field1", "Ljava/util/List;", "Ljava/util/List<Ljava/lang/Integer;>;");
-        Class<?> clazz = test.define(getClass().getClassLoader());
+        Class<?> clazz = test.define();
         Field field = clazz.getDeclaredField("field1");
         ParameterizedType fieldType = (ParameterizedType) field.getGenericType();
         Assert.assertEquals(List.class, fieldType.getRawType());

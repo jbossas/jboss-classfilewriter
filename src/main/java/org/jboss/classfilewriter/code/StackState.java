@@ -298,6 +298,13 @@ public class StackState {
         }
     }
 
+    public StackState updateMerged(int pos, StackEntry frame) {
+        List<StackEntry> newContents = new ArrayList<StackEntry>(contents);
+        newContents.remove(pos);
+        newContents.add(pos, frame);
+        return new StackState(newContents, constPool);
+    }
+
     public StackState swap() {
         int size = contents.size();
         List<StackEntry> newContents = new ArrayList<StackEntry>(contents.subList(0, size - 2));

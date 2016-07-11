@@ -35,13 +35,13 @@ public class BranchEnd {
     BranchEnd(int branchLocation, StackFrame stackFrame, final int offsetLocation) {
         this.branchLocation = branchLocation;
         this.offsetLocation = offsetLocation;
-        this.stackFrame = stackFrame;
+        this.stackFrame = stackFrame.createFull();
         this.jump32Bit = false;
     }
 
     public BranchEnd(final int branchLocation, final StackFrame stackFrame, final boolean jump32Bit, final int offsetLocation) {
         this.branchLocation = branchLocation;
-        this.stackFrame = stackFrame;
+        this.stackFrame = stackFrame.createFull();
         this.jump32Bit = jump32Bit;
         this.offsetLocation = offsetLocation;
     }

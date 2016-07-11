@@ -37,7 +37,7 @@ public class MethodTest
 	{
 
 		ClassFile test = new ClassFile(getClass().getName().replace('.', '/')
-				+ "GEN", "java/lang/Object");
+				+ "GEN", "java/lang/Object", getClass().getClassLoader());
 		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
 				"method1", "Ljava/lang/Object;", "I", "J");
 		CodeAttribute code = test.addMethod(AccessFlag.of(AccessFlag.PUBLIC),
@@ -50,7 +50,7 @@ public class MethodTest
 		code.pop2();
 		code.returnInstruction();
 
-		Class<?> clazz = test.define(getClass().getClassLoader());
+		Class<?> clazz = test.define();
 		Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
 
 		Method method1 = clazz.getDeclaredMethod("method1", int.class,
@@ -72,11 +72,11 @@ public class MethodTest
 	{
 
 		ClassFile test = new ClassFile(getClass().getName().replace('.', '/')
-				+ "ExceptionTypes", "java/lang/Object");
+				+ "ExceptionTypes", "java/lang/Object", getClass().getClassLoader());
 		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
 				"method", "Ljava/lang/Object;", "I", "J").addCheckedExceptions(
 				Exception.class);
-		Class<?> clazz = test.define(getClass().getClassLoader());
+		Class<?> clazz = test.define();
 
 		Method method = clazz
 				.getDeclaredMethod("method", int.class, long.class);
@@ -88,7 +88,7 @@ public class MethodTest
 	public void testDuplicateMethod()
 	{
 		ClassFile test = new ClassFile(getClass().getName().replace('.', '/')
-				+ "DuplicateMembers", "java/lang/Object");
+				+ "DuplicateMembers", "java/lang/Object", getClass().getClassLoader());
 		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),
 				"method", "Ljava/lang/Object;", "I", "J");
 		test.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.ABSTRACT),

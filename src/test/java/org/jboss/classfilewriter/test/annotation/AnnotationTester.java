@@ -38,10 +38,10 @@ public class AnnotationTester {
     public static Field testFieldAnnotations(Class<?> clazz, String name) {
         try {
 
-            ClassFile file = new ClassFile(NAME + count++, Object.class.getName());
+            ClassFile file = new ClassFile(NAME + count++, Object.class.getName(), AnnotationTester.class.getClassLoader());
             Field field = clazz.getDeclaredField(name);
             file.addField(field);
-            Class<?> newClass = file.define(clazz.getClassLoader());
+            Class<?> newClass = file.define();
             return newClass.getDeclaredField(name);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -50,11 +50,11 @@ public class AnnotationTester {
 
     public static Method testMethodAnnotations(Class<?> clazz, String name) {
         try {
-            ClassFile file = new ClassFile(NAME + count++, Object.class.getName());
+            ClassFile file = new ClassFile(NAME + count++, Object.class.getName(), AnnotationTester.class.getClassLoader());
             Method method = clazz.getDeclaredMethod(name, String.class);
             ClassMethod cmeth = file.addMethod(method);
             cmeth.getCodeAttribute().returnInstruction();
-            Class<?> newClass = file.define(clazz.getClassLoader());
+            Class<?> newClass = file.define();
             return newClass.getDeclaredMethod(name, String.class);
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -69,12 +69,30 @@ public class ClassFile implements WritableEntry {
 
     private final AnnotationsAttribute runtimeVisibleAnnotationsAttribute;
 
+    private final ClassLoader classLoader;
+
     public ClassFile(String name, String superclass, String... interfaces) {
-        this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, interfaces);
+        this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, null, interfaces);
     }
 
     public ClassFile(String name, int accessFlags, String superclass, String... interfaces) {
-        this.version = JavaVersions.JAVA_6;
+        this(name, accessFlags, superclass, null, interfaces);
+    }
+
+    public ClassFile(String name, String superclass, ClassLoader classLoader, String... interfaces) {
+        this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, classLoader, interfaces);
+    }
+
+    public ClassFile(String name, int accessFlags, String superclass, ClassLoader classLoader, String... interfaces) {
+        this(name, accessFlags, superclass, JavaVersions.JAVA_6, classLoader, interfaces);
+    }
+
+    public ClassFile(String name, int accessFlags, String superclass, int version, ClassLoader classLoader, String... interfaces) {
+        if(version > JavaVersions.JAVA_6 && classLoader == null) {
+            throw new IllegalArgumentException("ClassLoader must be specified if version is greater than Java 6");
+        }
+        this.version = version;
+        this.classLoader = classLoader;
         this.name = name.replace('/', '.'); // store the name in . form
         this.superclass = superclass;
         this.accessFlags = accessFlags;
@@ -247,13 +265,22 @@ public class ClassFile implements WritableEntry {
         }
     }
 
+    public Class<?> define() {
+        return define(classLoader, null);
+    }
+
+    @Deprecated
     public Class<?> define(ClassLoader loader) {
         return define(loader, null);
     }
 
+    public Class<?> define(ProtectionDomain domain) {
+        return define(classLoader, domain);
+    }
     /**
      * Definines the class using the given ClassLoader and ProtectionDomain
      */
+    @Deprecated
     public Class<?> define(ClassLoader loader, ProtectionDomain domain) {
         try {
             SecurityManager sm = System.getSecurityManager();
@@ -299,6 +326,10 @@ public class ClassFile implements WritableEntry {
             }
         }
         return bytecode;
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 
     public ConstPool getConstPool() {

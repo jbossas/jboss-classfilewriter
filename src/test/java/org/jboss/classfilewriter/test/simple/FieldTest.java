@@ -36,13 +36,13 @@ public class FieldTest<T extends Object, TT extends Object, TTT extends Object> 
 
         Field mapField = getClass().getDeclaredField("mapField");
 
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object", getClass().getClassLoader());
         test.addField(AccessFlag.PUBLIC, "field1", "I");
         test.addField(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "field2", "Ljava/lang/Object;");
         test.addField(AccessFlag.PUBLIC, "field3", AA.class);
         test.addField(AccessFlag.PUBLIC, "field4", mapField.getType());
 
-        Class<?> clazz = test.define(getClass().getClassLoader());
+        Class<?> clazz = test.define();
         Assert.assertEquals(getClass().getName() + "GEN", clazz.getName());
 
         Field field1 = clazz.getDeclaredField("field1");
@@ -76,7 +76,7 @@ public class FieldTest<T extends Object, TT extends Object, TTT extends Object> 
 
     @Test(expected = DuplicateMemberException.class)
     public void testDuplicateField() {
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "DuplicateField", "java/lang/Object");
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "DuplicateField", "java/lang/Object", getClass().getClassLoader());
         test.addField(AccessFlag.PUBLIC, "field1", "I");
         test.addField(AccessFlag.PUBLIC, "field1", "I");
     }

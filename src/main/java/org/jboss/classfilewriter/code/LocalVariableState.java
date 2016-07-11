@@ -158,4 +158,11 @@ public class LocalVariableState {
             throw new InvalidBytecodeException("entry is not an unitialized object. " + toString());
         }
     }
+
+    public LocalVariableState updateMerged(int pos, StackEntry frame) {
+        List<StackEntry> newContents = new ArrayList<StackEntry>(contents);
+        newContents.remove(pos);
+        newContents.add(pos, frame);
+        return new LocalVariableState(newContents, constPool);
+    }
 }

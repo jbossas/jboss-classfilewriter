@@ -31,10 +31,10 @@ public class MethodSignatureTest<Y> {
 
     @Test
     public void methodSignatureTest() throws SecurityException, NoSuchFieldException, NoSuchMethodException {
-        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object");
+        ClassFile test = new ClassFile(getClass().getName().replace('.', '/') + "GEN", "java/lang/Object", getClass().getClassLoader());
         ClassMethod cmth = test.addMethod(AccessFlag.PUBLIC | AccessFlag.ABSTRACT, "method1", "Ljava/util/List;");
         cmth.setSignature("()Ljava/util/List<Ljava/lang/Integer;>;");
-        Class<?> clazz = test.define(getClass().getClassLoader());
+        Class<?> clazz = test.define();
         Method method = clazz.getDeclaredMethod("method1");
         ParameterizedType fieldType = (ParameterizedType) method.getGenericReturnType();
         Assert.assertEquals(List.class, fieldType.getRawType());

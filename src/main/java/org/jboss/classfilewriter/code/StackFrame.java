@@ -240,11 +240,22 @@ public class StackFrame {
             return StackFrameType.SAME_LOCALS_1_STACK;
         }
         return StackFrameType.FULL_FRAME;
-
     }
 
+    public StackFrame mergeStack(int pos, StackEntry frame) {
+        StackState stack = stackState.updateMerged(pos, frame);
+        return new StackFrame(stack, localVariableState, StackFrameType.FULL_FRAME);
+    }
+
+    public StackFrame mergeLocals(int pos, StackEntry frame) {
+        LocalVariableState locals = localVariableState.updateMerged(pos, frame);
+        return new StackFrame(stackState, locals, StackFrameType.FULL_FRAME);
+    }
     public StackFrameType getType() {
         return type;
     }
 
+    public StackFrame createFull() {
+        return new StackFrame(stackState, localVariableState, StackFrameType.FULL_FRAME);
+    }
 }
