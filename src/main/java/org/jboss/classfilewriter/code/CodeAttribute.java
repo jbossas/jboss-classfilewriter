@@ -124,7 +124,7 @@ public class CodeAttribute extends Attribute {
     public void writeData(ByteArrayDataOutputStream stream) throws IOException {
 
         // add the stack map table
-        if(method.getClassFile().getClassLoader() != null) {
+        if (method.getClassFile().getClassLoader() != null) {
             //we don't generate the stack map if the class loader is null
             attributes.add(stackMapTableAttribute);
         }
@@ -328,6 +328,10 @@ public class CodeAttribute extends Attribute {
      * Do not use Descriptor format (e.g. Ljava/lang/Object;), the correct form is just java/lang/Object or java.lang.Object
      */
     public void checkcast(String className) {
+        if(className.endsWith(";")) {
+            throw new RuntimeException("Invalid cast format " + className);
+        }
+        className = className.replace(".", "/");
         assertTypeOnStack(StackEntryType.OBJECT, "checkcast requires reference type on stack");
         int classIndex = constPool.addClassEntry(className);
         writeByte(Opcode.CHECKCAST);
@@ -1840,7 +1844,7 @@ public class CodeAttribute extends Attribute {
         }
         if (!arrayType.startsWith("[")) {
             newType.append('L');
-            newType.append(arrayType);
+            newType.append(arrayType.replace(".", "/"));
             newType.append(";");
         } else {
             newType.append(arrayType);
@@ -1858,7 +1862,7 @@ public class CodeAttribute extends Attribute {
         int classIndex = constPool.addClassEntry(classname);
         writeByte(Opcode.NEW);
         writeShort(classIndex);
-        StackEntry entry = new StackEntry(StackEntryType.UNITITIALIZED_OBJECT, classname, currentOffset);
+        StackEntry entry = new StackEntry(StackEntryType.UNITITIALIZED_OBJECT, DescriptorUtils.makeDescriptor(classname), currentOffset);
         currentOffset += 3;
         advanceFrame(currentFrame.push(entry));
     }
@@ -2248,7 +2252,7 @@ public class CodeAttribute extends Attribute {
         StackState currentStackState = getStack();
         StackState mergeStackState = stackFrame.getStackState();
         if (currentStackState.size() != mergeStackState.size()) {
-            throw new InvalidBytecodeException("Cannot merge stack frames, different stack sizes");
+            throw new InvalidBytecodeException("Cannot merge stack frames, different stack sizes " + currentFrame + " " + stackFrame);
         }
         for (int i = 0; i < mergeStackState.size(); ++i) {
             StackEntry currentEntry = currentStackState.getContents().get(i);
@@ -2256,12 +2260,12 @@ public class CodeAttribute extends Attribute {
             if (mergeEntry.getType() == currentEntry.getType()) {
                 if (mergeEntry.getType() == StackEntryType.OBJECT) {
                     if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
-                        if(method.getClassFile().getClassLoader() != null) {
+                        if (method.getClassFile().getClassLoader() != null) {
                             String superType = findSuperType(mergeEntry.getDescriptor(), currentEntry.getDescriptor());
                             if (superType == null) {
-                                throw new InvalidBytecodeException("Could not find common supertype for " + mergeEntry.getDescriptor() + " and " + currentEntry.getDescriptor());
+                                throw new InvalidBytecodeException("Could not find common supertype for " + mergeEntry.getDescriptor() + " and " + currentEntry.getDescriptor() + " " + currentFrame + " " + stackFrame);
                             } else if (!superType.equals(currentEntry.getDescriptor())) {
-                                stackFrames.put(currentOffset, currentFrame = currentFrame.mergeStack(i, new StackEntry(StackEntryType.OBJECT, superType, constPool)));
+                                stackFrames.put(currentOffset, currentFrame = currentFrame.mergeStack(i, new StackEntry(StackEntryType.OBJECT, DescriptorUtils.makeDescriptor(superType), constPool)));
                             }
                         }
                     }
@@ -2269,7 +2273,7 @@ public class CodeAttribute extends Attribute {
             } else if (!((mergeEntry.getType() == StackEntryType.NULL && currentEntry.getType() == StackEntryType.OBJECT) || (mergeEntry
                     .getType() == StackEntryType.OBJECT && currentEntry.getType() == StackEntryType.NULL))) {
                 throw new InvalidBytecodeException("Cannot merge stack frame " + currentStackState + " with frame "
-                        + mergeStackState + " stack entry " + i + " is invalid");
+                        + mergeStackState + " stack entry " + i + " is invalid " + currentFrame + " " + stackFrame);
             }
         }
 
@@ -2277,7 +2281,7 @@ public class CodeAttribute extends Attribute {
         LocalVariableState mergeLocalVariableState = stackFrame.getLocalVariableState();
         if (currentLocalVariableState.size() < mergeLocalVariableState.size()) {
             throw new InvalidBytecodeException(
-                    "Cannot merge stack frames, merge location has less locals than current location");
+                    "Cannot merge stack frames, merge location has less locals than current location " + currentFrame + " " + stackFrame);
         }
         for (int i = 0; i < mergeLocalVariableState.size(); ++i) {
             StackEntry currentEntry = currentLocalVariableState.getContents().get(i);
@@ -2287,12 +2291,12 @@ public class CodeAttribute extends Attribute {
                     if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
 
                         if (!mergeEntry.getDescriptor().equals(currentEntry.getDescriptor())) {
-                            if(method.getClassFile().getClassLoader() != null) {
+                            if (method.getClassFile().getClassLoader() != null) {
                                 String superType = findSuperType(mergeEntry.getDescriptor(), currentEntry.getDescriptor());
                                 if (superType == null) {
-                                    throw new InvalidBytecodeException("Could not find common supertype for " + mergeEntry.getDescriptor() + " and " + currentEntry.getDescriptor());
+                                    throw new InvalidBytecodeException("Could not find common supertype for " + mergeEntry.getDescriptor() + " and " + currentEntry.getDescriptor() + " " + currentFrame + " " + stackFrame);
                                 } else if (!superType.equals(currentEntry.getDescriptor())) {
-                                    stackFrames.put(currentOffset, currentFrame = currentFrame.mergeLocals(i, new StackEntry(StackEntryType.OBJECT, superType, constPool)));
+                                    stackFrames.put(currentOffset, currentFrame = currentFrame.mergeLocals(i, new StackEntry(StackEntryType.OBJECT, DescriptorUtils.makeDescriptor(superType), constPool)));
                                 }
                             }
                         }
@@ -2301,21 +2305,21 @@ public class CodeAttribute extends Attribute {
             } else if (!((mergeEntry.getType() == StackEntryType.NULL && currentEntry.getType() == StackEntryType.OBJECT) || (mergeEntry
                     .getType() == StackEntryType.OBJECT && currentEntry.getType() == StackEntryType.NULL))) {
                 throw new InvalidBytecodeException("Cannot merge stack frame " + currentLocalVariableState + " with frame "
-                        + currentLocalVariableState + " local variable entry " + i + " is invalid");
+                        + currentLocalVariableState + " local variable entry " + i + " is invalid " + currentFrame + " " + stackFrame);
             }
         }
     }
 
     private String findSuperType(String ds1, String ds2) {
         String d1 = ds1;
-        if(ds1.endsWith(";")) {
+        if (ds1.endsWith(";")) {
             d1 = ds1.substring(1, ds1.length() - 1).replace("/", ".");
         }
         String d2 = ds2;
-        if(ds2.endsWith(";")) {
+        if (ds2.endsWith(";")) {
             d2 = ds2.substring(1, ds2.length() - 1).replace("/", ".");
         }
-        if(stackFrameTypeResolver != null) {
+        if (stackFrameTypeResolver != null) {
             return stackFrameTypeResolver.resolve(method.getClassFile().getClassLoader(), d1, d2);
         }
         //just load the classes for now
@@ -2330,14 +2334,14 @@ public class CodeAttribute extends Attribute {
             } else {
                 Class<?> p = c1;
                 while (p != Object.class) {
-                    if(p.isAssignableFrom(c2)) {
+                    if (p.isAssignableFrom(c2)) {
                         return p.getName();
                     }
                     p = p.getSuperclass();
                 }
                 p = c2;
                 while (p != Object.class) {
-                    if(p.isAssignableFrom(c1)) {
+                    if (p.isAssignableFrom(c1)) {
                         return p.getName();
                     }
                     p = p.getSuperclass();
@@ -2352,9 +2356,9 @@ public class CodeAttribute extends Attribute {
                 interfaces.addAll(s2);
                 interfaces.remove(c1);
                 interfaces.remove(c2);
-                if(interfaces.size() == 1) {
+                if (interfaces.size() == 1) {
                     return interfaces.iterator().next().getName();
-                } else if(interfaces.size() > 1) {
+                } else if (interfaces.size() > 1) {
                     throw new RuntimeException("Could not resolve common superclass for " + d1 + " and " + d2);
                 } else {
                     return Object.class.getName();
@@ -2367,12 +2371,12 @@ public class CodeAttribute extends Attribute {
 
     private void leavesOnly(Set<Class<?>> s2) {
         List<Class<?>> keys = new ArrayList<Class<?>>(s2);
-        for(Class<?> key : keys) {
-            for(Class<?> content : s2) {
-                if(key == content) {
+        for (Class<?> key : keys) {
+            for (Class<?> content : s2) {
+                if (key == content) {
                     continue;
                 }
-                if(key.isAssignableFrom(content)) {
+                if (key.isAssignableFrom(content)) {
                     s2.remove(key);
                     break;
                 }
@@ -2383,7 +2387,7 @@ public class CodeAttribute extends Attribute {
     private Set<Class<?>> getAllSuperclassesAndInterface(Class<?> c, Set<Class<?>> set) {
         set.addAll(Arrays.asList(c.getInterfaces()));
         set.add(c);
-        if(c.getSuperclass() != null) {
+        if (c.getSuperclass() != null) {
             getAllSuperclassesAndInterface(c.getSuperclass(), set);
         }
         return set;

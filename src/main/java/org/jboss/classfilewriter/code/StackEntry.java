@@ -52,6 +52,9 @@ public class StackEntry {
             throw new RuntimeException("OBJECT stack entries must provide a const pool index for the class");
         }
         this.type = type;
+        if(descriptor != null && descriptor.contains(".")) {
+            throw new RuntimeException("invalid descriptor "+ descriptor);
+        }
         this.descriptor = descriptor;
         this.newInstructionLocation = -1;
         this.descriptorIndex = -1;
@@ -61,6 +64,9 @@ public class StackEntry {
         this.type = type;
         this.descriptor = descriptor;
         this.newInstructionLocation = -1;
+        if(descriptor != null && descriptor.contains(".")) {
+            throw new RuntimeException("invalid descriptor " + descriptor);
+        }
         if(type == StackEntryType.OBJECT) {
             if (descriptor.charAt(0) == 'L') {
                 descriptorIndex = pool.addClassEntry(descriptor.substring(1, descriptor.length() - 1)); // strip the L and the ;
@@ -78,6 +84,9 @@ public class StackEntry {
         this.descriptor = descriptor;
         this.newInstructionLocation = newInstructionLocation;
         this.descriptorIndex = -1;
+        if(descriptor != null && descriptor.contains(".")) {
+            throw new RuntimeException("invalid descriptor " + descriptor);
+        }
     }
 
     public String getDescriptor() {

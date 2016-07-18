@@ -342,7 +342,7 @@ public class ClassFile implements WritableEntry {
      * @return
      */
     public String getDescriptor() {
-        return 'L' + name + ';';
+        return DescriptorUtils.makeDescriptor(name);
     }
 
     public AnnotationsAttribute getRuntimeVisibleAnnotationsAttribute() {
