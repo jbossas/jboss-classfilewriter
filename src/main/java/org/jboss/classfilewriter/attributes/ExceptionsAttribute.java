@@ -36,7 +36,7 @@ public class ExceptionsAttribute extends Attribute {
 
     private final List<String> exceptionClasses = new ArrayList<String>();
 
-    private final List<Short> exceptionClassIndexes = new ArrayList<Short>();
+    private final List<Integer> exceptionClassIndexes = new ArrayList<Integer>();
 
     private final ConstPool constPool;
 
@@ -54,7 +54,7 @@ public class ExceptionsAttribute extends Attribute {
     public void writeData(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeInt(2 + exceptionClassIndexes.size() * 2);
         stream.writeShort(exceptionClassIndexes.size());
-        for (short i : exceptionClassIndexes) {
+        for (int i : exceptionClassIndexes) {
             stream.writeShort(i);
         }
     }

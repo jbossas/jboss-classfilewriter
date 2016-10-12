@@ -22,10 +22,10 @@ import java.io.IOException;
 
 public class NameAndTypeEntry extends ConstPoolEntry {
 
-    private final short nameIndex;
-    private final short descriptorIndex;
+    private final int nameIndex;
+    private final int descriptorIndex;
 
-    public NameAndTypeEntry(short nameIndex, short descriptorIndex) {
+    public NameAndTypeEntry(int nameIndex, int descriptorIndex) {
         this.nameIndex = nameIndex;
         this.descriptorIndex = descriptorIndex;
     }

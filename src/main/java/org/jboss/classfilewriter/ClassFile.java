@@ -212,10 +212,10 @@ public class ClassFile implements WritableEntry {
 
     public void write(ByteArrayDataOutputStream stream) throws IOException {
         // first make sure everything we need is in the const pool
-        short nameIndex = constPool.addClassEntry(name);
-        short superClassIndex = constPool.addClassEntry(superclass);
+        int nameIndex = constPool.addClassEntry(name);
+        int superClassIndex = constPool.addClassEntry(superclass);
 
-        List<Short> interfaceIndexes = new ArrayList<Short>(interfaces.size());
+        List<Integer> interfaceIndexes = new ArrayList<Integer>(interfaces.size());
         for (String i : interfaces) {
             interfaceIndexes.add(constPool.addClassEntry(i));
         }
@@ -227,7 +227,7 @@ public class ClassFile implements WritableEntry {
         stream.writeShort(nameIndex);
         stream.writeShort(superClassIndex);
         stream.writeShort(interfaceIndexes.size()); // interface count
-        for (short i : interfaceIndexes) {
+        for (int i : interfaceIndexes) {
             stream.writeShort(i);
         }
         stream.writeShort(fields.size()); // field count

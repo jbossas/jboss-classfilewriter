@@ -32,7 +32,7 @@ import java.io.IOException;
 public abstract class Attribute implements WritableEntry {
 
     private final String name;
-    private final short nameIndex;
+    private final int nameIndex;
     protected final ConstPool constPool;
 
     public Attribute(String name, final ConstPool constPool) {

@@ -35,11 +35,11 @@ import java.util.List;
  */
 public class ClassField implements WritableEntry {
 
-    private final short accessFlags;
+    private final int accessFlags;
     private final String name;
-    private final short nameIndex;
+    private final int nameIndex;
     private final String descriptor;
-    private final short descriptorIndex;
+    private final int descriptorIndex;
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 
     private final ClassFile classFile;
@@ -50,7 +50,7 @@ public class ClassField implements WritableEntry {
 
     private String signature;
 
-    ClassField(short accessFlags, String name, String descriptor, ClassFile classFile,
+    ClassField(int accessFlags, String name, String descriptor, ClassFile classFile,
             ConstPool constPool) {
         this.accessFlags = accessFlags;
         this.name = name;
@@ -75,7 +75,7 @@ public class ClassField implements WritableEntry {
         }
     }
 
-    public short getAccessFlags() {
+    public int getAccessFlags() {
         return accessFlags;
     }
 

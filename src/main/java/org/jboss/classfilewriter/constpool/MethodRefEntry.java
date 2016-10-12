@@ -22,10 +22,10 @@ import java.io.IOException;
 
 public class MethodRefEntry extends ConstPoolEntry {
 
-    private final short classIndex;
-    private final short nameAndTypeIndex;
+    private final int classIndex;
+    private final int nameAndTypeIndex;
 
-    public MethodRefEntry(short classIndex, short nameAndTypeIndex) {
+    public MethodRefEntry(int classIndex, int nameAndTypeIndex) {
         this.classIndex = classIndex;
         this.nameAndTypeIndex = nameAndTypeIndex;
     }

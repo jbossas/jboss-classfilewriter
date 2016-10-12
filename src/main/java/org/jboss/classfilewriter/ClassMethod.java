@@ -46,11 +46,11 @@ public class ClassMethod implements WritableEntry {
     /**
      * The index of the name into the const pool
      */
-    private final short nameIndex;
+    private final int nameIndex;
     /**
      * the index of the descriptor into the const pool
      */
-    private final short descriptorIndex;
+    private final int descriptorIndex;
 
     private final List<Attribute> attributes = new ArrayList<Attribute>();
 

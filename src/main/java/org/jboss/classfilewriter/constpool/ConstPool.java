@@ -30,32 +30,32 @@ import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 
 public class ConstPool implements WritableEntry {
 
-    private final LinkedHashMap<Short, ConstPoolEntry> entries = new LinkedHashMap<Short, ConstPoolEntry>();
+    private final LinkedHashMap<Integer, ConstPoolEntry> entries = new LinkedHashMap<Integer, ConstPoolEntry>();
 
-    private final Map<String, Short> utf8Locations = new HashMap<String, Short>();
-    private final Map<String, Short> classLocations = new HashMap<String, Short>();
-    private final Map<String, Short> stringLocations = new HashMap<String, Short>();
-    private final Map<NameAndType, Short> nameAndTypeLocations = new HashMap<NameAndType, Short>();
-    private final Map<MemberInfo, Short> fieldLocations = new HashMap<MemberInfo, Short>();
-    private final Map<MemberInfo, Short> methodLocations = new HashMap<MemberInfo, Short>();
-    private final Map<MemberInfo, Short> interfaceMethodLocations = new HashMap<MemberInfo, Short>();
-    private final Map<Integer, Short> integerLocations = new HashMap<Integer, Short>();
-    private final Map<Float, Short> floatLocations = new HashMap<Float, Short>();
-    private final Map<Long, Short> longLocations = new HashMap<Long, Short>();
-    private final Map<Double, Short> doubleLocations = new HashMap<Double, Short>();
+    private final Map<String, Integer> utf8Locations = new HashMap<String, Integer>();
+    private final Map<String, Integer> classLocations = new HashMap<String, Integer>();
+    private final Map<String, Integer> stringLocations = new HashMap<String, Integer>();
+    private final Map<NameAndType, Integer> nameAndTypeLocations = new HashMap<NameAndType, Integer>();
+    private final Map<MemberInfo, Integer> fieldLocations = new HashMap<MemberInfo, Integer>();
+    private final Map<MemberInfo, Integer> methodLocations = new HashMap<MemberInfo, Integer>();
+    private final Map<MemberInfo, Integer> interfaceMethodLocations = new HashMap<MemberInfo, Integer>();
+    private final Map<Integer, Integer> integerLocations = new HashMap<Integer, Integer>();
+    private final Map<Float, Integer> floatLocations = new HashMap<Float, Integer>();
+    private final Map<Long, Integer> longLocations = new HashMap<Long, Integer>();
+    private final Map<Double, Integer> doubleLocations = new HashMap<Double, Integer>();
 
-    private short count = 1;
+    private int count = 1;
 
     /**
      * The constant_pool_count field of the class file format
      */
-    private short constPoolSize = 1;
+    private Integer constPoolSize = 1;
 
-    public short addUtf8Entry(String entry) {
+    public Integer addUtf8Entry(String entry) {
         if (utf8Locations.containsKey(entry)) {
             return utf8Locations.get(entry);
         }
-        final short index = count++;
+        final int index = count++;
         constPoolSize++;
         entries.put(index, new Utf8Entry(entry));
         utf8Locations.put(entry, index);
@@ -65,13 +65,13 @@ public class ConstPool implements WritableEntry {
     /**
      * Adds a CONSTANT_Class_info to the const pool. This must be in internal form
      */
-    public short addClassEntry(String className) {
+    public Integer addClassEntry(String className) {
         className = className.replace('.', '/');
         if (classLocations.containsKey(className)) {
             return classLocations.get(className);
         }
-        final short utf8Location = addUtf8Entry(className);
-        final short index = count++;
+        final Integer utf8Location = addUtf8Entry(className);
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new ClassEntry(utf8Location));
         classLocations.put(className, index);
@@ -81,45 +81,45 @@ public class ConstPool implements WritableEntry {
     /**
      * Adds a CONSTANT_String_info to the const pool.
      */
-    public short addStringEntry(String string) {
+    public Integer addStringEntry(String string) {
         if (stringLocations.containsKey(string)) {
             return stringLocations.get(string);
         }
-        final short utf8Location = addUtf8Entry(string);
-        final short index = count++;
+        final Integer utf8Location = addUtf8Entry(string);
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new StringEntry(utf8Location));
         stringLocations.put(string, index);
         return index;
     }
 
-    public short addIntegerEntry(int entry) {
+    public Integer addIntegerEntry(int entry) {
         if (integerLocations.containsKey(entry)) {
             return integerLocations.get(entry);
         }
-        final short index = count++;
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new IntegerEntry(entry));
         integerLocations.put(entry, index);
         return index;
     }
 
-    public short addFloatEntry(float entry) {
+    public Integer addFloatEntry(float entry) {
         if (floatLocations.containsKey(entry)) {
             return floatLocations.get(entry);
         }
-        final short index = count++;
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new FloatEntry(entry));
         floatLocations.put(entry, index);
         return index;
     }
 
-    public short addLongEntry(long entry) {
+    public Integer addLongEntry(long entry) {
         if (longLocations.containsKey(entry)) {
             return longLocations.get(entry);
         }
-        final short index = count++;
+        final Integer index = count++;
         count++;
         constPoolSize += 2;
         entries.put(index, new LongEntry(entry));
@@ -127,11 +127,11 @@ public class ConstPool implements WritableEntry {
         return index;
     }
 
-    public short addDoubleEntry(double entry) {
+    public Integer addDoubleEntry(double entry) {
         if (doubleLocations.containsKey(entry)) {
             return doubleLocations.get(entry);
         }
-        final short index = count++;
+        final Integer index = count++;
         count++;
         constPoolSize += 2;
         entries.put(index, new DoubleEntry(entry));
@@ -139,59 +139,59 @@ public class ConstPool implements WritableEntry {
         return index;
     }
 
-    public short addNameAndTypeEntry(String name, String type) {
+    public Integer addNameAndTypeEntry(String name, String type) {
         final NameAndType typeInfo = new NameAndType(name, type);
         if(nameAndTypeLocations.containsKey(typeInfo)) {
             return nameAndTypeLocations.get(typeInfo);
         }
-        final short nameIndex = addUtf8Entry(name);
-        final short typeIndex = addUtf8Entry(type);
-        final short index = count++;
+        final Integer nameIndex = addUtf8Entry(name);
+        final Integer typeIndex = addUtf8Entry(type);
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index,new NameAndTypeEntry(nameIndex, typeIndex));
         nameAndTypeLocations.put(typeInfo, index);
         return index;
     }
 
-    public short addFieldEntry(String className, String fieldName, String fieldType) {
+    public Integer addFieldEntry(String className, String fieldName, String fieldType) {
         final NameAndType nameAndType = new NameAndType(fieldName, fieldType);
         final MemberInfo field = new MemberInfo(className, nameAndType);
         if (fieldLocations.containsKey(field)) {
             return fieldLocations.get(field);
         }
-        final short nameAndTypeIndex = addNameAndTypeEntry(fieldName, fieldType);
-        final short classIndex = addClassEntry(className);
-        final short index = count++;
+        final Integer nameAndTypeIndex = addNameAndTypeEntry(fieldName, fieldType);
+        final Integer classIndex = addClassEntry(className);
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new FieldRefEntry(classIndex, nameAndTypeIndex));
         fieldLocations.put(field, index);
         return index;
     }
 
-    public short addMethodEntry(String className, String methodName, String descriptor) {
+    public Integer addMethodEntry(String className, String methodName, String descriptor) {
         final NameAndType nameAndType = new NameAndType(methodName, descriptor);
         final MemberInfo method = new MemberInfo(className, nameAndType);
         if (methodLocations.containsKey(method)) {
             return methodLocations.get(method);
         }
-        final short nameAndTypeIndex = addNameAndTypeEntry(methodName, descriptor);
-        final short classIndex = addClassEntry(className);
-        final short index = count++;
+        final Integer nameAndTypeIndex = addNameAndTypeEntry(methodName, descriptor);
+        final Integer classIndex = addClassEntry(className);
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new MethodRefEntry(classIndex, nameAndTypeIndex));
         methodLocations.put(method, index);
         return index;
     }
 
-    public short addInterfaceMethodEntry(String className, String methodName, String descriptor) {
+    public Integer addInterfaceMethodEntry(String className, String methodName, String descriptor) {
         final NameAndType nameAndType = new NameAndType(methodName, descriptor);
         final MemberInfo method = new MemberInfo(className, nameAndType);
         if (interfaceMethodLocations.containsKey(method)) {
             return interfaceMethodLocations.get(method);
         }
-        final short nameAndTypeIndex = addNameAndTypeEntry(methodName, descriptor);
-        final short classIndex = addClassEntry(className);
-        final short index = count++;
+        final Integer nameAndTypeIndex = addNameAndTypeEntry(methodName, descriptor);
+        final Integer classIndex = addClassEntry(className);
+        final Integer index = count++;
         constPoolSize++;
         entries.put(index, new InterfaceMethodRefEntry(classIndex, nameAndTypeIndex));
         interfaceMethodLocations.put(method, index);
@@ -200,7 +200,7 @@ public class ConstPool implements WritableEntry {
 
     public void write(ByteArrayDataOutputStream stream) throws IOException {
         stream.writeShort(constPoolSize);
-        for (Entry<Short, ConstPoolEntry> entry : entries.entrySet()) {
+        for (Entry<Integer, ConstPoolEntry> entry : entries.entrySet()) {
             entry.getValue().write(stream);
         }
     }
