@@ -111,26 +111,27 @@ public class StackEntry {
     }
 
     public static StackEntry of(String descriptor, ConstPool pool) {
-        if(!DescriptorUtils.isPrimitive(descriptor)) {
-            return new StackEntry(StackEntryType.OBJECT, descriptor, pool);
+        String desc = descriptor.replace(".", "/");
+        if(!DescriptorUtils.isPrimitive(desc)) {
+            return new StackEntry(StackEntryType.OBJECT, desc, pool);
         }else {
-            char ret = descriptor.charAt(0);
+            char ret = desc.charAt(0);
             switch (ret) {
                 case 'I':
                 case 'Z':
                 case 'S':
                 case 'B':
                 case 'C':
-                    return new StackEntry(StackEntryType.INT, descriptor);
+                    return new StackEntry(StackEntryType.INT, desc);
                 case 'F':
-                    return new StackEntry(StackEntryType.FLOAT, descriptor);
+                    return new StackEntry(StackEntryType.FLOAT, desc);
                 case 'D':
-                    return new StackEntry(StackEntryType.DOUBLE, descriptor);
+                    return new StackEntry(StackEntryType.DOUBLE, desc);
                 case 'J':
-                    return new StackEntry(StackEntryType.LONG, descriptor);
+                    return new StackEntry(StackEntryType.LONG, desc);
             }
         }
-        throw new RuntimeException("Unknown descriptor: " + descriptor);
+        throw new RuntimeException("Unknown descriptor: " + desc);
     }
 
     public boolean isWide() {

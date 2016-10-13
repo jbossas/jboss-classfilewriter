@@ -32,7 +32,7 @@ public class AnewarrayTest {
         MethodTester<Void> mt = new MethodTester<Void>(Void.class);
         CodeAttribute ca = mt.getCodeAttribute();
         ca.iconst(10);
-        ca.anewarray("java/lang/Integer");
+        ca.anewarray("java.lang.Integer");
         ca.putstatic(getClass().getName(), "VALUE", "[Ljava/lang/Integer;");
         ca.aconstNull();
         ca.returnInstruction();
