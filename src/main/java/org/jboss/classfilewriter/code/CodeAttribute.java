@@ -2116,7 +2116,7 @@ public class CodeAttribute extends Attribute {
 
     private void writeShort(int n) {
         try {
-            if (n > Short.MAX_VALUE) {
+            if (n > Short.MAX_VALUE * 2) {
                 throw new RuntimeException(n + " is to big to be written as a 16 bit value");
             }
             data.writeShort(n);
