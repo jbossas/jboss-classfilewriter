@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.jboss.classfilewriter.InvalidBytecodeException;
 import org.jboss.classfilewriter.constpool.ConstPool;
+import org.jboss.classfilewriter.util.DescriptorUtils;
 
 
 /**
@@ -52,7 +53,7 @@ public class StackState {
 
     public StackState(String exceptionType, ConstPool constPool) {
         this.contents = new ArrayList<StackEntry>(1);
-        this.contents.add(new StackEntry(StackEntryType.OBJECT, "L" + exceptionType + ";", constPool));
+        this.contents.add(new StackEntry(StackEntryType.OBJECT, DescriptorUtils.makeDescriptor(exceptionType), constPool));
         this.constPool = constPool;
     }
 
