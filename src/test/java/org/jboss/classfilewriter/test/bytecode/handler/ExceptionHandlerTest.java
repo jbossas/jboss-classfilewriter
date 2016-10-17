@@ -17,12 +17,12 @@
  */
 package org.jboss.classfilewriter.test.bytecode.handler;
 
-import junit.framework.Assert;
-
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.code.ExceptionHandler;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 public class ExceptionHandlerTest {
     public static Integer[] VALUE;
@@ -54,6 +54,21 @@ public class ExceptionHandlerTest {
         ca.iconst(20);
         ca.returnInstruction();
         Assert.assertEquals(200, (int) mt.invoke());
+    }
+
+    @Test
+    public void testNonInternalBinaryName() {
+        MethodTester<Integer> mt = new MethodTester<Integer>(int.class);
+        CodeAttribute ca = mt.getCodeAttribute();
+        ExceptionHandler handler = ca.exceptionBlockStart("java.lang.RuntimeException");
+        ca.getstatic(getClass().getName(), "VALUE", "[Ljava/lang/Integer;");
+        ca.arraylength();
+        ca.returnInstruction();
+        ca.exceptionBlockEnd(handler);
+        ca.exceptionHandlerStart(handler);
+        ca.iconst(1);
+        ca.returnInstruction();
+        Assert.assertEquals(1, (int) mt.invoke());
     }
 
 }

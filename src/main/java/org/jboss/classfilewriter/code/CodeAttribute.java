@@ -328,7 +328,7 @@ public class CodeAttribute extends Attribute {
      * Do not use Descriptor format (e.g. Ljava/lang/Object;), the correct form is just java/lang/Object or java.lang.Object
      */
     public void checkcast(String className) {
-        if(className.endsWith(";")) {
+        if (!className.startsWith("[") && className.endsWith(";")) {
             throw new RuntimeException("Invalid cast format " + className);
         }
         className = className.replace(".", "/");
