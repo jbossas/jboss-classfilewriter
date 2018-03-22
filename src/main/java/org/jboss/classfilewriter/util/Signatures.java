@@ -238,7 +238,7 @@ public final class Signatures {
     }
 
     private static String encodeClassName(String className) {
-        return className.replace(".", "/");
+        return className.replace('.', '/');
     }
 
     @SuppressWarnings("unchecked")

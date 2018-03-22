@@ -45,7 +45,7 @@ public class DescriptorUtils {
      * e.g. java.lang.String => Ljava/lang/String;
      */
     public static String makeDescriptor(String className) {
-        String repl = className.replace(".", "/");
+        String repl = className.replace('.', '/');
         return 'L' + repl + ';';
     }
 
@@ -69,7 +69,7 @@ public class DescriptorUtils {
         } else if (boolean.class.equals(c)) {
             return BOOLEAN_CLASS_DESCRIPTOR;
         } else if (c.isArray()) {
-            return c.getName().replace(".", "/");
+            return c.getName().replace('.', '/');
         } else
         // normal object
         {

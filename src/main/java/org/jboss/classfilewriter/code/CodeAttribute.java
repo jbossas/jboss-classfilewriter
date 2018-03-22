@@ -330,7 +330,7 @@ public class CodeAttribute extends Attribute {
         if (!className.startsWith("[") && className.endsWith(";")) {
             throw new RuntimeException("Invalid cast format " + className);
         }
-        className = className.replace(".", "/");
+        className = className.replace('.', '/');
         assertTypeOnStack(StackEntryType.OBJECT, "checkcast requires reference type on stack");
         int classIndex = constPool.addClassEntry(className);
         writeByte(Opcode.CHECKCAST);
@@ -1843,7 +1843,7 @@ public class CodeAttribute extends Attribute {
         }
         if (!arrayType.startsWith("[")) {
             newType.append('L');
-            newType.append(arrayType.replace(".", "/"));
+            newType.append(arrayType.replace('.', '/'));
             newType.append(";");
         } else {
             newType.append(arrayType);

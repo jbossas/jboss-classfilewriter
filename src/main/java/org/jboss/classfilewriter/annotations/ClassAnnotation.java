@@ -41,7 +41,7 @@ public class ClassAnnotation implements WritableEntry {
 
     public ClassAnnotation(ConstPool constPool, String type, List<AnnotationValue> annotationValues) {
         this.type = type;
-        this.typeIndex = constPool.addUtf8Entry("L" + type.replace(".","/") + ";");
+        this.typeIndex = constPool.addUtf8Entry("L" + type.replace('.','/') + ";");
         this.annotationValues = new ArrayList<AnnotationValue>(annotationValues);
     }
 

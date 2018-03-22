@@ -111,7 +111,7 @@ public class StackEntry {
     }
 
     public static StackEntry of(String descriptor, ConstPool pool) {
-        String desc = descriptor.replace(".", "/");
+        String desc = descriptor.replace('.', '/');
         if(!DescriptorUtils.isPrimitive(desc)) {
             return new StackEntry(StackEntryType.OBJECT, desc, pool);
         }else {
