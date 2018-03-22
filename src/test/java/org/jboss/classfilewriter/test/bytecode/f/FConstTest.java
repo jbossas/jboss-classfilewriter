@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -31,7 +31,7 @@ public class FConstTest {
         CodeAttribute ca = mt.getCodeAttribute();
         ca.fconst(2);
         ca.returnInstruction();
-        Assert.assertEquals(2.0f, (float) mt.invoke());
+        Assert.assertEquals(2.0f, mt.invoke(), 0);
     }
 
     @Test
@@ -40,7 +40,7 @@ public class FConstTest {
         CodeAttribute ca = mt.getCodeAttribute();
         ca.fconst(200.0f);
         ca.returnInstruction();
-        Assert.assertEquals(200f, (float) mt.invoke());
+        Assert.assertEquals(200f, mt.invoke(), 0);
     }
 
 }

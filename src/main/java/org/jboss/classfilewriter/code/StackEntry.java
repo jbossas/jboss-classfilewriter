@@ -64,7 +64,7 @@ public class StackEntry {
         this.type = type;
         this.descriptor = descriptor;
         this.newInstructionLocation = -1;
-        if(descriptor != null && descriptor.contains(".")) {
+        if(descriptor.contains(".")) {
             throw new RuntimeException("invalid descriptor " + descriptor);
         }
         if(type == StackEntryType.OBJECT) {

@@ -19,7 +19,7 @@ package org.jboss.classfilewriter.test.simple;
 
 import java.io.Serializable;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.ClassFile;
 import org.junit.Test;

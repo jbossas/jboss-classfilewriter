@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.i;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -32,7 +32,7 @@ public class I2dTest {
         ca.ldc(3);
         ca.i2d();
         ca.returnInstruction();
-        Assert.assertEquals(3.0d, (double) mt.invoke());
+        Assert.assertEquals(3.0d, mt.invoke(), 0);
     }
 
 

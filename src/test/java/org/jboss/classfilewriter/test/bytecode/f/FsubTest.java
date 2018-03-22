@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -33,8 +33,8 @@ public class FsubTest {
         ca.fload(1);
         ca.fsub();
         ca.returnInstruction();
-        Assert.assertEquals(10.0f - 5.0f, (float) mt.invoke(10.0f, 5.0f));
-        Assert.assertEquals(12.0f - 2.0f, (float) mt.invoke(12.0f, 2.0f));
+        Assert.assertEquals(10.0f - 5.0f, mt.invoke(10.0f, 5.0f), 0);
+        Assert.assertEquals(12.0f - 2.0f, mt.invoke(12.0f, 2.0f), 0);
     }
 
 

@@ -21,13 +21,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassFile;
 import org.jboss.classfilewriter.DuplicateMemberException;
 import org.junit.Test;
 
-public class FieldTest<T extends Object, TT extends Object, TTT extends Object> {
+public class FieldTest<T, TT, TTT> {
 
     public Map<TT, Integer> mapField;
 

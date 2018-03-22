@@ -4,7 +4,7 @@ import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
-import junit.framework.Assert;
+import org.junit.Assert;
 
 /**
  * @author Stuart Douglas

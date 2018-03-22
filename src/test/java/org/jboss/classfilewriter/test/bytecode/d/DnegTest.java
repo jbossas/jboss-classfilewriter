@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -32,7 +32,7 @@ public class DnegTest {
         ca.dload(0);
         ca.dneg();
         ca.returnInstruction();
-        Assert.assertEquals(-1.0, (double) mt.invoke(1));
+        Assert.assertEquals(-1.0, mt.invoke(1), 0);
     }
 
 

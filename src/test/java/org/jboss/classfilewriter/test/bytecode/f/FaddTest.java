@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -33,7 +33,7 @@ public class FaddTest {
         ca.fload(1);
         ca.fadd();
         ca.returnInstruction();
-        Assert.assertEquals(2.0f, (float) mt.invoke(1.0f, 1.0f));
+        Assert.assertEquals(2.0f, mt.invoke(1.0f, 1.0f), 0);
     }
 
 }

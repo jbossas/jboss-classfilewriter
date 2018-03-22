@@ -25,7 +25,7 @@ public @interface EnumValuedAnnotation {
     SimpleEnum value();
 
     enum SimpleEnum {
-        A, B, C, D;
+        A, B, C, D
     }
 
 }

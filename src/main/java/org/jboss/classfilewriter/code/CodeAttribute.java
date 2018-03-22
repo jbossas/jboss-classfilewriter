@@ -158,7 +158,6 @@ public class CodeAttribute extends Attribute {
             attribute.write(stream);
         }
         size.markEnd();
-        ;
     }
 
     // -------------------------------------------

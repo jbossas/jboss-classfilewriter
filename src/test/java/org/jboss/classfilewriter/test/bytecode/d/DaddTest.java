@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -33,7 +33,7 @@ public class DaddTest {
         ca.dload(2);
         ca.dadd();
         ca.returnInstruction();
-        Assert.assertEquals(2.0, (double) mt.invoke(1.0, 1.0));
+        Assert.assertEquals(2.0, mt.invoke(1.0, 1.0), 0);
     }
 
 

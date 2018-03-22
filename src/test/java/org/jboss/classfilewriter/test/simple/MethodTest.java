@@ -20,7 +20,7 @@ package org.jboss.classfilewriter.test.simple;
 import java.io.IOException;
 import java.lang.reflect.Method;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassFile;

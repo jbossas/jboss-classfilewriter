@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.InvalidBytecodeException;
 import org.jboss.classfilewriter.code.CodeAttribute;
@@ -51,7 +51,7 @@ public class Dup2X2Test {
         ca.pop2();
         ca.pop2();
         ca.returnInstruction();
-        Assert.assertEquals(0.0, (double) mt.invoke());
+        Assert.assertEquals(0.0, mt.invoke(), 0);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class Dup2X2Test {
         ca.pop2();
         ca.pop2();
         ca.returnInstruction();
-        Assert.assertEquals(0.0, (double) mt.invoke());
+        Assert.assertEquals(0.0, mt.invoke(), 0);
     }
 
     @Test
@@ -93,7 +93,7 @@ public class Dup2X2Test {
         ca.pop2();
         ca.pop2();
         ca.returnInstruction();
-        Assert.assertEquals(0, (double) mt.invoke());
+        Assert.assertEquals(0, mt.invoke(), 0);
     }
 
     @Test(expected = InvalidBytecodeException.class)
@@ -108,6 +108,6 @@ public class Dup2X2Test {
         ca.pop2();
         ca.pop2();
         ca.returnInstruction();
-        Assert.assertEquals(0, (double) mt.invoke());
+        Assert.assertEquals(0, mt.invoke(), 0);
     }
 }

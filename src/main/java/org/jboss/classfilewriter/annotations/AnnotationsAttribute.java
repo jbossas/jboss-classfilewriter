@@ -35,10 +35,10 @@ import java.util.List;
  */
 public class AnnotationsAttribute extends Attribute {
 
-    public static enum Type {
+    public enum Type {
         RUNTIME_VISIBLE("RuntimeVisibleAnnotations"), RUNTIME_INVISIBLE("RuntimeInvisibleAnnotations");
 
-        private Type(String tag) {
+        Type(String tag) {
             this.tag = tag;
         }
 

@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -35,6 +35,6 @@ public class DaloadTest {
         ca.iconst(1);
         ca.daload();
         ca.returnInstruction();
-        Assert.assertEquals(3.0, (double) mt.invoke());
+        Assert.assertEquals(3.0, mt.invoke(), 0);
     }
 }

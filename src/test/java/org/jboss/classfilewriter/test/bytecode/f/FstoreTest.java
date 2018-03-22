@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -33,6 +33,6 @@ public class FstoreTest {
         ca.fstore(0);
         ca.fload(0);
         ca.returnInstruction();
-        Assert.assertEquals(1.0f, (float) mt.invoke());
+        Assert.assertEquals(1.0f, mt.invoke(), 0);
     }
 }

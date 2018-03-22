@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -32,6 +32,6 @@ public class FnegTest {
         ca.fload(0);
         ca.fneg();
         ca.returnInstruction();
-        Assert.assertEquals(-10.0f, (float) mt.invoke(10.0f));
+        Assert.assertEquals(-10.0f, mt.invoke(10.0f), 0);
     }
 }

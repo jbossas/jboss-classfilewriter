@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.g;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;

@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -35,6 +35,6 @@ public class FaloadTest {
         ca.iconst(1);
         ca.faload();
         ca.returnInstruction();
-        Assert.assertEquals(3.0f, (float) mt.invoke());
+        Assert.assertEquals(3.0f, mt.invoke(), 0);
     }
 }

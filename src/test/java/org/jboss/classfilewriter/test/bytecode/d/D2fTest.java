@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -32,7 +32,7 @@ public class D2fTest {
         ca.ldc2((double) 0);
         ca.d2f();
         ca.returnInstruction();
-        Assert.assertEquals(0.0f, mt.invoke());
+        Assert.assertEquals(0.0f, (double)mt.invoke(), 0);
     }
 
 

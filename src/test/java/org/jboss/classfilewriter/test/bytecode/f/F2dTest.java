@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.f;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -32,7 +32,7 @@ public class F2dTest {
         ca.ldc((float) 0);
         ca.f2d();
         ca.returnInstruction();
-        Assert.assertEquals(0.0d, mt.invoke());
+        Assert.assertEquals(0.0d, mt.invoke(), 0);
     }
 
 

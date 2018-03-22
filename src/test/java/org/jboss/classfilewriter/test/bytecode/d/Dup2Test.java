@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -45,7 +45,7 @@ public class Dup2Test {
         ca.dup2();
         ca.pop2();
         ca.returnInstruction();
-        Assert.assertEquals(0.0, (double) mt.invoke());
+        Assert.assertEquals(0.0, mt.invoke(), 0);
     }
 
 }

@@ -19,7 +19,7 @@ package org.jboss.classfilewriter.test.annotation;
 
 import java.lang.reflect.Method;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 

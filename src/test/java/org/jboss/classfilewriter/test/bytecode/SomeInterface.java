@@ -18,7 +18,7 @@
 package org.jboss.classfilewriter.test.bytecode;
 
 public interface SomeInterface {
-    public void setInt(int value);
+    void setInt(int value);
 
-    public long incrementLong(long value);
+    long incrementLong(long value);
 }

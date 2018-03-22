@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.i;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
@@ -26,7 +26,7 @@ import org.junit.Test;
 
 public class IfAcmpeqTest {
 
-    public static Integer value = new Integer(10);
+    public static Integer value = 10;
 
     @Test
     public void testIfAcmpeq() {
@@ -41,6 +41,6 @@ public class IfAcmpeqTest {
         ca.iconst(0);
         ca.returnInstruction();
         Assert.assertEquals(0, (int) mt.invoke(value, value));
-        Assert.assertEquals(10, (int) mt.invoke(value, new Integer(11)));
+        Assert.assertEquals(10, (int) mt.invoke(value, 11));
     }
 }

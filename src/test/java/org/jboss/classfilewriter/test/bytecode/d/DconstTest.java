@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -31,6 +31,6 @@ public class DconstTest {
         CodeAttribute ca = mt.getCodeAttribute();
         ca.dconst(1);
         ca.returnInstruction();
-        Assert.assertEquals(1.0, (double) mt.invoke());
+        Assert.assertEquals(1.0, mt.invoke(), 0);
     }
 }

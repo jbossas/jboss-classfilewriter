@@ -19,7 +19,7 @@ package org.jboss.classfilewriter.test.bytecode.i;
 
 import java.io.ByteArrayInputStream;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;

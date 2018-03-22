@@ -22,7 +22,7 @@ import org.jboss.classfilewriter.code.ExceptionHandler;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
 import org.junit.Test;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 public class ExceptionHandlerTest {
     public static Integer[] VALUE;

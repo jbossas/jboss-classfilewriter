@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -38,6 +38,6 @@ public class DastoreTest {
 
         ca.returnInstruction();
         mt.invoke();
-        Assert.assertEquals(1.0, VALUE[1]);
+        Assert.assertEquals(1.0, VALUE[1], 0);
     }
 }

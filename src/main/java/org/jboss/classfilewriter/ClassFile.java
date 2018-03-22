@@ -266,22 +266,26 @@ public class ClassFile implements WritableEntry {
     }
 
     public Class<?> define() {
-        return define(classLoader, null);
+        return defineInternal(classLoader, null);
     }
 
     @Deprecated
     public Class<?> define(ClassLoader loader) {
-        return define(loader, null);
+        return defineInternal(loader, null);
     }
 
     public Class<?> define(ProtectionDomain domain) {
-        return define(classLoader, domain);
+        return defineInternal(classLoader, domain);
     }
     /**
      * Definines the class using the given ClassLoader and ProtectionDomain
      */
     @Deprecated
     public Class<?> define(ClassLoader loader, ProtectionDomain domain) {
+        return defineInternal(loader, domain);
+    }
+
+    private Class<?> defineInternal(ClassLoader loader, ProtectionDomain domain) {
         try {
             SecurityManager sm = System.getSecurityManager();
             if (sm != null) {

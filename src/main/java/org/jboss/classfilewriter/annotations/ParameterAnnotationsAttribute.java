@@ -37,10 +37,10 @@ import java.util.Map;
  */
 public class ParameterAnnotationsAttribute extends Attribute {
 
-    public static enum Type {
+    public enum Type {
         RUNTIME_VISIBLE("RuntimeVisibleParameterAnnotations"), RUNTIME_INVISIBLE("RuntimeInvisibleParameterAnnotations");
 
-        private Type(String tag) {
+        Type(String tag) {
             this.tag = tag;
         }
 

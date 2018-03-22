@@ -33,7 +33,7 @@ public enum ConstPoolEntryType {
     private final int tag;
     private final int slots;
 
-    private ConstPoolEntryType(int tag, int slots) {
+    ConstPoolEntryType(int tag, int slots) {
         this.tag = tag;
         this.slots = slots;
     }

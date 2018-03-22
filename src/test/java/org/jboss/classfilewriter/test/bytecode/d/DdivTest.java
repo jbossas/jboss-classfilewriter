@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -33,8 +33,8 @@ public class DdivTest {
         ca.dload(2);
         ca.ddiv();
         ca.returnInstruction();
-        Assert.assertEquals(10.0 / 5.0, (double) mt.invoke(10.0, 5.0));
-        Assert.assertEquals(12.0 / 2.0, (double) mt.invoke(12.0, 2.0));
+        Assert.assertEquals(10.0 / 5.0, mt.invoke(10.0, 5.0), 0);
+        Assert.assertEquals(12.0 / 2.0, mt.invoke(12.0, 2.0), 0);
     }
 
 

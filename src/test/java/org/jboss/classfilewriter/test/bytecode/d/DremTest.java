@@ -17,7 +17,7 @@
  */
 package org.jboss.classfilewriter.test.bytecode.d;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.test.bytecode.MethodTester;
@@ -33,8 +33,8 @@ public class DremTest {
         ca.dload(2);
         ca.drem();
         ca.returnInstruction();
-        Assert.assertEquals(10.0 % 5.0, (double) mt.invoke(10.0, 5.0));
-        Assert.assertEquals(13.0 % 2.0, (double) mt.invoke(13.0, 2.0));
+        Assert.assertEquals(10.0 % 5.0, mt.invoke(10.0, 5.0), 0);
+        Assert.assertEquals(13.0 % 2.0, mt.invoke(13.0, 2.0), 0);
     }
 
 

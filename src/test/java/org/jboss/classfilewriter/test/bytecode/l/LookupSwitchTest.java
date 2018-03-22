@@ -19,7 +19,7 @@ package org.jboss.classfilewriter.test.bytecode.l;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.code.LookupSwitchBuilder;

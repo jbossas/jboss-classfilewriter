@@ -43,8 +43,8 @@ import java.util.Map.Entry;
  */
 public class StackMapTableAttribute extends Attribute {
 
-    private static int FULL_FRAME = 255;
-    private static int SAME_FRAME_EXTENDED = 251;
+    private static final int FULL_FRAME = 255;
+    private static final int SAME_FRAME_EXTENDED = 251;
 
 
     public static final String NAME = "StackMapTable";
