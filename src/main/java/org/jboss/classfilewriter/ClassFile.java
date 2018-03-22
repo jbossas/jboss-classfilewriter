@@ -23,6 +23,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
@@ -39,6 +40,8 @@ import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
+
+import sun.misc.Unsafe;
 
 /**
  *
@@ -244,27 +247,6 @@ public class ClassFile implements WritableEntry {
         }
     }
 
-    private static java.lang.reflect.Method defineClass1, defineClass2;
-
-    static {
-        try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-                public Object run() throws Exception {
-                    Class<?> cl = Class.forName("java.lang.ClassLoader", false, null);
-                    defineClass1 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
-                            int.class });
-                    defineClass1.setAccessible(true);
-                    defineClass2 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
-                            int.class, ProtectionDomain.class });
-                    defineClass2.setAccessible(true);
-                    return null;
-                }
-            });
-        } catch (PrivilegedActionException pae) {
-            throw new RuntimeException("cannot initialize ClassFile", pae.getException());
-        }
-    }
-
     public Class<?> define() {
         return defineInternal(classLoader, null);
     }
@@ -300,17 +282,7 @@ public class ClassFile implements WritableEntry {
                 sm.checkPermission(permission);
             }
             byte[] b = toBytecode();
-            java.lang.reflect.Method method;
-            Object[] args;
-            if (domain == null) {
-                method = defineClass1;
-                args = new Object[] { name.replace('/', '.'), b, new Integer(0), new Integer(b.length) };
-            } else {
-                method = defineClass2;
-                args = new Object[] { name.replace('/', '.'), b, new Integer(0), new Integer(b.length), domain };
-            }
-            Class<?> clazz = (Class<?>) method.invoke(loader, args);
-            return clazz;
+            return UNSAFE.defineClass(name.replace('/', '.'), b, 0, b.length, loader, domain );
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -394,4 +366,35 @@ public class ClassFile implements WritableEntry {
         return Collections.unmodifiableSet(methods);
     }
 
+    // Unsafe mechanics
+
+    private static final sun.misc.Unsafe UNSAFE;
+    static {
+        try {
+            UNSAFE = getUnsafe();
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+    }
+
+    private static Unsafe getUnsafe() {
+        if (System.getSecurityManager() != null) {
+            return new PrivilegedAction<Unsafe>() {
+                public Unsafe run() {
+                    return getUnsafe0();
+                }
+            }.run();
+        }
+        return getUnsafe0();
+    }
+
+    private static Unsafe getUnsafe0()  {
+        try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            return (Unsafe) theUnsafe.get(null);
+        } catch (Throwable t) {
+            throw new RuntimeException("JDK did not allow accessing unsafe", t);
+        }
+    }
 }
