@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
+import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
  * An enum annotation value
@@ -38,7 +39,7 @@ public class EnumAnnotationValue extends AnnotationValue {
     public EnumAnnotationValue(ConstPool constPool, String name, Enum<?> value) {
         super(constPool, name);
         this.valueIndex = constPool.addUtf8Entry(value.name());
-        this.typeIndex = constPool.addUtf8Entry(value.getDeclaringClass().getName());
+        this.typeIndex = constPool.addUtf8Entry(DescriptorUtils.makeDescriptor(value.getDeclaringClass().getName()));
     }
 
     public EnumAnnotationValue(ConstPool constPool, String name, String enumType, String enumValue) {
