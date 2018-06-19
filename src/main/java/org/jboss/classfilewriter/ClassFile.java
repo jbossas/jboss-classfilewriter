@@ -413,18 +413,7 @@ public class ClassFile implements WritableEntry {
         }
     }
 
-    private static Unsafe getUnsafe() {
-        if (System.getSecurityManager() != null) {
-            return new PrivilegedAction<Unsafe>() {
-                public Unsafe run() {
-                    return getUnsafe0();
-                }
-            }.run();
-        }
-        return getUnsafe0();
-    }
-
-    private static Unsafe getUnsafe0()  {
+    private static Unsafe getUnsafe()  {
         try {
             Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
             theUnsafe.setAccessible(true);
