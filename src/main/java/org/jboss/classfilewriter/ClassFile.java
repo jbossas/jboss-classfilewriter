@@ -19,6 +19,7 @@ package org.jboss.classfilewriter;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -103,6 +104,8 @@ public class ClassFile implements WritableEntry {
         runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
+
+    private final static java.lang.reflect.Method defineClass1, defineClass2;
 
     public void addInterface(String iface) {
         this.interfaces.add(iface);
@@ -282,7 +285,16 @@ public class ClassFile implements WritableEntry {
                 sm.checkPermission(permission);
             }
             byte[] b = toBytecode();
-            return UNSAFE.defineClass(name.replace('/', '.'), b, 0, b.length, loader, domain );
+            java.lang.reflect.Method method;
+            Object[] args;
+            if (domain == null) {
+                method = defineClass1;
+                args = new Object[] { name.replace('/', '.'), b, Integer.valueOf(0), Integer.valueOf(b.length) };
+            } else {
+                method = defineClass2;
+                args = new Object[] { name.replace('/', '.'), b, Integer.valueOf(0), Integer.valueOf(b.length), domain };
+            }
+            return (Class<?>) method.invoke(loader, args);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -368,12 +380,36 @@ public class ClassFile implements WritableEntry {
 
     // Unsafe mechanics
 
-    private static final sun.misc.Unsafe UNSAFE;
     static {
         try {
-            UNSAFE = getUnsafe();
-        } catch (Exception e) {
-            throw new Error(e);
+            Method[] defineClassMethods = AccessController.doPrivileged(new PrivilegedExceptionAction<Method[]>() {
+                public Method[] run() throws Exception {
+                    final sun.misc.Unsafe UNSAFE;
+                    final long overrideOffset;
+                    // first we need to grab Unsafe
+                    try {
+                        UNSAFE = getUnsafe();
+                        overrideOffset = UNSAFE.objectFieldOffset(AccessibleObject.class.getDeclaredField("override"));
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
+                    // now we gain access to CL.defineClass methods
+                    Class<?> cl = ClassLoader.class;
+                    Method defClass1 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
+                        int.class });
+                    Method defClass2 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
+                        int.class, ProtectionDomain.class });
+                    // use Unsafe to crack open both CL.defineClass() methods (instead of using setAccessible())
+                    UNSAFE.putBoolean(defClass1, overrideOffset, true);
+                    UNSAFE.putBoolean(defClass2, overrideOffset, true);
+                    return new Method[]{defClass1, defClass2};
+                }
+            });
+            // set methods to final fields
+            defineClass1 = defineClassMethods[0];
+            defineClass2 = defineClassMethods[1];
+        } catch (PrivilegedActionException pae) {
+            throw new RuntimeException("cannot initialize ClassFile", pae.getException());
         }
     }
 
