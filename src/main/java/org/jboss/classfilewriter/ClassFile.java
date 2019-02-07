@@ -19,14 +19,9 @@ package org.jboss.classfilewriter;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,12 +37,8 @@ import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
-import sun.misc.Unsafe;
-
 /**
- *
  * @author Stuart Douglas
- *
  */
 public class ClassFile implements WritableEntry {
 
@@ -75,37 +66,69 @@ public class ClassFile implements WritableEntry {
 
     private final ClassLoader classLoader;
 
+    private final ClassFactory classFactory;
+
+    @Deprecated
     public ClassFile(String name, String superclass, String... interfaces) {
         this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, null, interfaces);
     }
 
+    @Deprecated
     public ClassFile(String name, int accessFlags, String superclass, String... interfaces) {
         this(name, accessFlags, superclass, null, interfaces);
     }
 
+    @Deprecated
     public ClassFile(String name, String superclass, ClassLoader classLoader, String... interfaces) {
         this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, classLoader, interfaces);
     }
 
+    @Deprecated
     public ClassFile(String name, int accessFlags, String superclass, ClassLoader classLoader, String... interfaces) {
         this(name, accessFlags, superclass, JavaVersions.JAVA_6, classLoader, interfaces);
     }
 
+    @Deprecated
     public ClassFile(String name, int accessFlags, String superclass, int version, ClassLoader classLoader, String... interfaces) {
         if(version > JavaVersions.JAVA_6 && classLoader == null) {
             throw new IllegalArgumentException("ClassLoader must be specified if version is greater than Java 6");
         }
         this.version = version;
         this.classLoader = classLoader;
+        this.classFactory = null; // allowed to be null for backward compatibility reasons
         this.name = name.replace('/', '.'); // store the name in . form
         this.superclass = superclass;
         this.accessFlags = accessFlags;
         this.interfaces.addAll(Arrays.asList(interfaces));
-        runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
+        this.runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
         this.attributes.add(runtimeVisibleAnnotationsAttribute);
     }
 
-    private final static java.lang.reflect.Method defineClass1, defineClass2;
+    public ClassFile(String name, String superclass, ClassLoader classLoader, ClassFactory classFactory, String... interfaces) {
+        this(name, AccessFlag.of(AccessFlag.SUPER, AccessFlag.PUBLIC), superclass, classLoader, classFactory, interfaces);
+    }
+
+    public ClassFile(String name, int accessFlags, String superclass, ClassLoader classLoader, ClassFactory classFactory, String... interfaces) {
+        this(name, accessFlags, superclass, JavaVersions.JAVA_6, classLoader, classFactory, interfaces);
+    }
+
+    public ClassFile(String name, int accessFlags, String superclass, int version, ClassLoader classLoader, ClassFactory classFactory, String... interfaces) {
+        if(version > JavaVersions.JAVA_6 && classLoader == null) {
+            throw new IllegalArgumentException("ClassLoader must be specified if version is greater than Java 6");
+        }
+        if (classFactory == null) {
+            throw new IllegalArgumentException("ClassFactory must be specified");
+        }
+        this.version = version;
+        this.classLoader = classLoader;
+        this.classFactory = classFactory;
+        this.name = name.replace('/', '.'); // store the name in . form
+        this.superclass = superclass;
+        this.accessFlags = accessFlags;
+        this.interfaces.addAll(Arrays.asList(interfaces));
+        this.runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
+        this.attributes.add(runtimeVisibleAnnotationsAttribute);
+    }
 
     public void addInterface(String iface) {
         this.interfaces.add(iface);
@@ -271,35 +294,9 @@ public class ClassFile implements WritableEntry {
     }
 
     private Class<?> defineInternal(ClassLoader loader, ProtectionDomain domain) {
-        try {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm != null) {
-                final int index = name.lastIndexOf('.');
-                final String packageName;
-                if(index == -1 ) {
-                    packageName = "";
-                } else {
-                    packageName = name.substring(0, index);
-                }
-                RuntimePermission permission = new RuntimePermission("defineClassInPackage." + packageName);
-                sm.checkPermission(permission);
-            }
-            byte[] b = toBytecode();
-            java.lang.reflect.Method method;
-            Object[] args;
-            if (domain == null) {
-                method = defineClass1;
-                args = new Object[] { name.replace('/', '.'), b, Integer.valueOf(0), Integer.valueOf(b.length) };
-            } else {
-                method = defineClass2;
-                args = new Object[] { name.replace('/', '.'), b, Integer.valueOf(0), Integer.valueOf(b.length), domain };
-            }
-            return (Class<?>) method.invoke(loader, args);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        byte[] b = toBytecode();
+        final ClassFactory classFactory = this.classFactory == null ? DefaultClassFactory.INSTANCE : this.classFactory;
+        return classFactory.defineClass(loader, name, b, 0, b.length, domain);
     }
 
     public byte[] toBytecode() {
@@ -378,48 +375,4 @@ public class ClassFile implements WritableEntry {
         return Collections.unmodifiableSet(methods);
     }
 
-    // Unsafe mechanics
-
-    static {
-        try {
-            Method[] defineClassMethods = AccessController.doPrivileged(new PrivilegedExceptionAction<Method[]>() {
-                public Method[] run() throws Exception {
-                    final sun.misc.Unsafe UNSAFE;
-                    final long overrideOffset;
-                    // first we need to grab Unsafe
-                    try {
-                        UNSAFE = getUnsafe();
-                        overrideOffset = UNSAFE.objectFieldOffset(AccessibleObject.class.getDeclaredField("override"));
-                    } catch (Exception e) {
-                        throw new Error(e);
-                    }
-                    // now we gain access to CL.defineClass methods
-                    Class<?> cl = ClassLoader.class;
-                    Method defClass1 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
-                        int.class });
-                    Method defClass2 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
-                        int.class, ProtectionDomain.class });
-                    // use Unsafe to crack open both CL.defineClass() methods (instead of using setAccessible())
-                    UNSAFE.putBoolean(defClass1, overrideOffset, true);
-                    UNSAFE.putBoolean(defClass2, overrideOffset, true);
-                    return new Method[]{defClass1, defClass2};
-                }
-            });
-            // set methods to final fields
-            defineClass1 = defineClassMethods[0];
-            defineClass2 = defineClassMethods[1];
-        } catch (PrivilegedActionException pae) {
-            throw new RuntimeException("cannot initialize ClassFile", pae.getException());
-        }
-    }
-
-    private static Unsafe getUnsafe()  {
-        try {
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-            theUnsafe.setAccessible(true);
-            return (Unsafe) theUnsafe.get(null);
-        } catch (Throwable t) {
-            throw new RuntimeException("JDK did not allow accessing unsafe", t);
-        }
-    }
 }
