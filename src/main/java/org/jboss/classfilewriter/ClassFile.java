@@ -36,6 +36,7 @@ import org.jboss.classfilewriter.attributes.Attribute;
 import org.jboss.classfilewriter.constpool.ConstPool;
 import org.jboss.classfilewriter.util.ByteArrayDataOutputStream;
 import org.jboss.classfilewriter.util.DescriptorUtils;
+import org.jboss.classfilewriter.util.Signatures;
 
 /**
  * @author Stuart Douglas
@@ -195,6 +196,7 @@ public class ClassFile implements WritableEntry {
         ClassMethod classMethod = addMethod(method.getModifiers() & (~AccessFlag.ABSTRACT) & (~AccessFlag.NATIVE), method
                 .getName(), DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                 .getParameterTypes()));
+        classMethod.setSignature(Signatures.methodSignature(method));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);
         }
