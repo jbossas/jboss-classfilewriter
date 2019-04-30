@@ -186,17 +186,25 @@ public class ClassFile implements WritableEntry {
 
     /**
      * Adds a method with the same signiture as the given method, including exception types
+     */
+    public ClassMethod addMethod(Method method){
+        return addMethod(method, true);
+    }
+
+    /**
      * <p>
      * The new method will have the same modifier as the original method, except that the abstract and native flags will be
      * stripped.
+     *
+     * If signature attribute is set to true, signature is propagated.
      * <p>
-     * TODO: annotations and signiture attribute
+     * TODO: annotations
      */
-    public ClassMethod addMethod(Method method) {
+    public ClassMethod addMethod(Method method, boolean signature) {
         ClassMethod classMethod = addMethod(method.getModifiers() & (~AccessFlag.ABSTRACT) & (~AccessFlag.NATIVE), method
                 .getName(), DescriptorUtils.makeDescriptor(method.getReturnType()), DescriptorUtils.parameterDescriptors(method
                 .getParameterTypes()));
-        classMethod.setSignature(Signatures.methodSignature(method));
+        if (signature) classMethod.setSignature(Signatures.methodSignature(method));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);
         }
