@@ -26,6 +26,8 @@ import static org.jboss.classfilewriter.util.DescriptorUtils.LONG_CLASS_DESCRIPT
 import static org.jboss.classfilewriter.util.DescriptorUtils.SHORT_CLASS_DESCRIPTOR;
 import static org.jboss.classfilewriter.util.DescriptorUtils.VOID_CLASS_DESCRIPTOR;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -85,6 +87,46 @@ public final class Signatures {
 
         // Return type
         javaType(method.getGenericReturnType(), builder);
+
+        // Throws
+        Type[] exceptions = method.getGenericExceptionTypes();
+        if (exceptions.length > 0) {
+            // "If the throws clause of a method or constructor declaration does not involve type variables, then a compiler may treat the declaration as having no throws clause for the purpose of emitting a method signature."
+            // Note that it's only possible to use a type parameter in a throws clause
+            for (Type exceptionType : exceptions) {
+                builder.append('^');
+                javaType(exceptionType, builder);
+            }
+        }
+        return builder.toString();
+    }
+
+    public static String constructorSignature(Constructor method) {
+
+        StringBuilder builder = new StringBuilder();
+
+        // Type parameters
+        TypeVariable<?>[] typeParams = method.getTypeParameters();
+        if (typeParams.length > 0) {
+            builder.append(TYPE_PARAM_DEL_START);
+            for (TypeVariable<?> typeParam : typeParams) {
+                typeParameter(typeParam, builder);
+            }
+            builder.append(TYPE_PARAM_DEL_END);
+        }
+
+        // Formal parameters
+        Type[] params = method.getGenericParameterTypes();
+        builder.append('(');
+        if (params.length > 0) {
+            for (Type paramType : params) {
+                javaType(paramType, builder);
+            }
+        }
+        builder.append(')');
+
+        // Return type
+        builder.append(VOID_CLASS_DESCRIPTOR);
 
         // Throws
         Type[] exceptions = method.getGenericExceptionTypes();

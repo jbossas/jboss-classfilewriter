@@ -231,6 +231,7 @@ public class ClassFile implements WritableEntry {
     public ClassMethod addConstructor(Constructor<?> method) {
         ClassMethod classMethod = addMethod(method.getModifiers(), "<init>", "V", DescriptorUtils.parameterDescriptors(method
                 .getParameterTypes()));
+        classMethod.setSignature(Signatures.constructorSignature(method));
         for (Class<?> e : method.getExceptionTypes()) {
             classMethod.addCheckedExceptions((Class<? extends Exception>) e);
         }
