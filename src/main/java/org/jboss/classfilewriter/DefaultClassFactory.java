@@ -17,61 +17,47 @@
  */
 package org.jboss.classfilewriter;
 
-import sun.misc.Unsafe;
-
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.security.AccessController;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 
 /**
- * Default class definition factory. This factory maintains backward compatibility
- * but it doesn't work on JDK 12 and above where ClassLoader reflection magic is forbidden.
+ * Default class definition factory.
  *
  * @author <a href="mailto:ropalka@redhat.com">Richard Opalka</a>
  */
 final class DefaultClassFactory implements ClassFactory {
 
-    static final ClassFactory INSTANCE = new DefaultClassFactory();
+    private static final String DEFINE_CLASS_METHOD_NAME = "defineClass";
+    private static final MethodHandle defineClassWithoutDomainParam, defineClassWithDomainParam;
 
-    private final java.lang.reflect.Method defineClass1, defineClass2;
-
-    private DefaultClassFactory() {
+    static {
+        MethodHandle[] defineClassMethods;
         try {
-            Method[] defineClassMethods = AccessController.doPrivileged(new PrivilegedExceptionAction<Method[]>() {
-                public Method[] run() throws Exception {
-                    final sun.misc.Unsafe UNSAFE;
-                    final long overrideOffset;
-                    // first we need to grab Unsafe
-                    try {
-                        Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-                        theUnsafe.setAccessible(true);
-                        UNSAFE = (Unsafe) theUnsafe.get(null);
-                        overrideOffset = UNSAFE.objectFieldOffset(AccessibleObject.class.getDeclaredField("override"));
-                    } catch (Exception e) {
-                        throw new Error(e);
-                    }
-                    // now we gain access to CL.defineClass methods
-                    Class<?> cl = ClassLoader.class;
-                    Method defClass1 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
-                            int.class });
-                    Method defClass2 = cl.getDeclaredMethod("defineClass", new Class[] { String.class, byte[].class, int.class,
-                            int.class, ProtectionDomain.class });
-                    // use Unsafe to crack open both CL.defineClass() methods (instead of using setAccessible())
-                    UNSAFE.putBoolean(defClass1, overrideOffset, true);
-                    UNSAFE.putBoolean(defClass2, overrideOffset, true);
-                    return new Method[]{defClass1, defClass2};
+            MethodHandles.Lookup LOOKUP = MethodHandles.privateLookupIn(ClassLoader.class, MethodHandles.lookup());
+            defineClassMethods = AccessController.doPrivileged(new PrivilegedExceptionAction<>() {
+                public MethodHandle[] run() throws Exception {
+                    MethodHandle defineClass1 = LOOKUP.findVirtual(ClassLoader.class, DEFINE_CLASS_METHOD_NAME,
+                            MethodType.methodType(Class.class, String.class, byte[].class, int.class, int.class));
+                    MethodHandle defineClass2 = LOOKUP.findVirtual(ClassLoader.class, DEFINE_CLASS_METHOD_NAME,
+                            MethodType.methodType(Class.class, String.class, byte[].class, int.class, int.class, ProtectionDomain.class));
+                    return new MethodHandle[]{defineClass1, defineClass2};
                 }
             });
-            // set methods to volatile fields
-            defineClass1 = defineClassMethods[0];
-            defineClass2 = defineClassMethods[1];
-        } catch (PrivilegedActionException pae) {
-            throw new RuntimeException("Cannot initialize DefaultClassFactory", pae.getException());
+        } catch (Throwable t) {
+            throw new RuntimeException("Cannot initialize " + DefaultClassFactory.class.getName(), t);
         }
+        defineClassWithoutDomainParam = defineClassMethods[0];
+        defineClassWithDomainParam = defineClassMethods[1];
+    }
+
+    static final ClassFactory INSTANCE = new DefaultClassFactory();
+
+    private DefaultClassFactory() {
+        // forbidden instantiation
     }
 
     @Override
@@ -91,19 +77,14 @@ final class DefaultClassFactory implements ClassFactory {
                 RuntimePermission permission = new RuntimePermission("defineClassInPackage." + packageName);
                 sm.checkPermission(permission);
             }
-            java.lang.reflect.Method method;
-            Object[] args;
             if (domain == null) {
-                method = defineClass1;
-                args = new Object[]{name, b, 0, b.length};
+                return (Class<?>) defineClassWithoutDomainParam.invokeExact(loader, name, b, 0, b.length);
             } else {
-                method = defineClass2;
-                args = new Object[]{name, b, 0, b.length, domain};
+                return (Class<?>) defineClassWithDomainParam.invokeExact(loader, name, b, 0, b.length, domain);
             }
-            return (Class<?>) method.invoke(loader, args);
         } catch (RuntimeException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }

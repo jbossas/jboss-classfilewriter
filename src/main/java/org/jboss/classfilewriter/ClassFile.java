@@ -39,6 +39,7 @@ import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
  * @author Stuart Douglas
+ * @author <a href="mailto:ropalka@redhat.com">Richard Opalka</a>
  */
 public class ClassFile implements WritableEntry {
 
@@ -90,18 +91,7 @@ public class ClassFile implements WritableEntry {
 
     @Deprecated
     public ClassFile(String name, int accessFlags, String superclass, int version, ClassLoader classLoader, String... interfaces) {
-        if(version > JavaVersions.JAVA_6 && classLoader == null) {
-            throw new IllegalArgumentException("ClassLoader must be specified if version is greater than Java 6");
-        }
-        this.version = version;
-        this.classLoader = classLoader;
-        this.classFactory = null; // allowed to be null for backward compatibility reasons
-        this.name = name.replace('/', '.'); // store the name in . form
-        this.superclass = superclass;
-        this.accessFlags = accessFlags;
-        this.interfaces.addAll(Arrays.asList(interfaces));
-        this.runtimeVisibleAnnotationsAttribute = new AnnotationsAttribute(AnnotationsAttribute.Type.RUNTIME_VISIBLE, constPool);
-        this.attributes.add(runtimeVisibleAnnotationsAttribute);
+        this(name, accessFlags, superclass, version, classLoader, DefaultClassFactory.INSTANCE, interfaces);
     }
 
     public ClassFile(String name, String superclass, ClassLoader classLoader, ClassFactory classFactory, String... interfaces) {
@@ -295,7 +285,6 @@ public class ClassFile implements WritableEntry {
 
     private Class<?> defineInternal(ClassLoader loader, ProtectionDomain domain) {
         byte[] b = toBytecode();
-        final ClassFactory classFactory = this.classFactory == null ? DefaultClassFactory.INSTANCE : this.classFactory;
         return classFactory.defineClass(loader, name, b, 0, b.length, domain);
     }
 
