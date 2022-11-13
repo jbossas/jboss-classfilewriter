@@ -1,4 +1,4 @@
-JBoss Class File Writer
+## JBoss Class File Writer
 
 JBoss Class File Writer is a byte code manipulating library used by EJB subsytem in [WildFly](https://github.com/wildfly/wildfly) project.
 
