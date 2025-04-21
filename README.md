@@ -2,6 +2,14 @@
 
 JBoss Class File Writer is a byte code manipulating library used by EJB subsytem in [WildFly](https://github.com/wildfly/wildfly) project.
 
+## Deprecated!
+
+This project is deprecated. The preferred method for generating or parsing bytecode is
+[the JDK classfile API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/classfile/package-summary.html)
+which may be found in JDK 24 or later, or 
+[the classfile API backport project](https://github.com/dmlloyd/jdk-classfile-backport)
+which runs on JDK 17 or later.
+
 ## Building
 
 Prerequisites:
